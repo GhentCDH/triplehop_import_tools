@@ -99,6 +99,28 @@ The script can then be used as follows:
 python triplehop_import_tools/triplehop_import_tools/generate_group_config.py
 ```
 
+Generate relation config
+---------------------
+
+Relation configs can be exported to JSON files using the `generate_relation_config.py` python script. Make sure a `config.py` file exists at the same level as the `triplehop_import_tools` with a `PROJECT_NAME` and `DATABASE` variable:
+
+```py
+PROJECT_NAME = ""
+
+DATABASE = {
+    "host": "",
+    "database": "",
+    "user": "",
+    "password": "",
+}
+```
+
+The script can then be used as follows:
+
+```sh
+python triplehop_import_tools/triplehop_import_tools/generate_relation_config.py
+```
+
 Process config
 --------------
 
