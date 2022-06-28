@@ -1,0 +1,16 @@
+[tool.poetry]
+name = "triplehop_import_tools"
+version = "0.1.0"
+description = ""
+authors = ["GhentCDH"]
+
+[tool.poetry.dependencies]
+python = "^3.7"
+aiocache = "^0.11.1"
+asyncpg = "^0.25.0"
+buildpg = "^0.4"
+tqdm = "^4.64.0"
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
