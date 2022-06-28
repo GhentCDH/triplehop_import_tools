@@ -8,10 +8,10 @@ The basic db structure can be set up using the `db_app.py` python script. Make s
 
 ```py
 DATABASE = {
-    'host': '',
-    'database': '',
-    'user': '',
-    'password': '',
+    "host": "",
+    "database": "",
+    "user": "",
+    "password": "",
 }
 ```
 
