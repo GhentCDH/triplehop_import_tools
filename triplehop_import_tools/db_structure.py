@@ -1,6 +1,5 @@
 import aiocache
 import asyncpg
-import re
 import typing
 
 import db_base
