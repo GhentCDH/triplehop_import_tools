@@ -77,6 +77,28 @@ The script can then be used as follows:
 python triplehop_import_tools/triplehop_import_tools/db_revision.py
 ```
 
+Generate group config
+---------------------
+
+Group configs can be exported to JSON files using the `generate_group_config.py` python script. Make sure a `config.py` file exists at the same level as the `triplehop_import_tools` with a `PROJECT_NAME` and `DATABASE` variable:
+
+```py
+PROJECT_NAME = ""
+
+DATABASE = {
+    "host": "",
+    "database": "",
+    "user": "",
+    "password": "",
+}
+```
+
+The script can then be used as follows:
+
+```sh
+python triplehop_import_tools/triplehop_import_tools/generate_group_config.py
+```
+
 Process config
 --------------
 
