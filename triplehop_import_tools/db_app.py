@@ -4,7 +4,7 @@ import sys
 
 import db_base
 
-sys.path.append('../..')
+sys.path.append("../..")
 import config
 
 
@@ -13,21 +13,21 @@ async def create_app_structure():
 
     await db_base.execute(
         pool,
-        '''
+        """
             DROP SCHEMA IF EXISTS app CASCADE;
-        '''
+        """,
     )
 
     await db_base.execute(
         pool,
-        '''
+        """
             CREATE SCHEMA app;
-        '''
+        """,
     )
 
     await db_base.execute(
         pool,
-        '''
+        """
             CREATE TABLE app.user (
                 id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
                 username VARCHAR NOT NULL,
@@ -38,37 +38,37 @@ async def create_app_structure():
                 modified TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(),
                 UNIQUE (username)
             );
-        '''
+        """,
     )
     # TODO: user revision?
 
     await db_base.execute(
         pool,
-        '''
+        """
             INSERT INTO app.user (username, display_name, hashed_password, disabled)
             VALUES (:username, :display_name, :hashed_password, :disabled);
-        ''',
+        """,
         {
-            'username': 'system',
-            'display_name': 'System user',
-            'hashed_password': '',
-            'disabled': True,
-        }
+            "username": "system",
+            "display_name": "System user",
+            "hashed_password": "",
+            "disabled": True,
+        },
     )
 
     await db_base.execute(
         pool,
-        '''
+        """
             CREATE TABLE app.token_denylist (
                 token VARCHAR PRIMARY KEY,
                 expires TIMESTAMP WITH TIME ZONE NOT NULL
             );
-        '''
+        """,
     )
 
     await db_base.execute(
         pool,
-        '''
+        """
             CREATE TABLE app.project (
                 id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
                 system_name VARCHAR NOT NULL,
@@ -80,24 +80,24 @@ async def create_app_structure():
                 modified TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(),
                 UNIQUE (system_name)
             );
-        '''
+        """,
     )
 
     await db_base.execute(
         pool,
-        '''
+        """
             INSERT INTO app.project (system_name, display_name, user_id)
             VALUES (
                 :system_name,
                 :display_name,
                 (SELECT "user".id FROM app.user WHERE "user".username = :username)
             );
-        ''',
+        """,
         {
-            'system_name': '__all__',
-            'display_name': 'All projects',
-            'username': 'system',
-        }
+            "system_name": "__all__",
+            "display_name": "All projects",
+            "username": "system",
+        },
     )
 
     # TODO: project revision?
@@ -117,7 +117,7 @@ async def create_app_structure():
 
     await db_base.execute(
         pool,
-        '''
+        """
             CREATE TABLE app.group (
                 id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
                 project_id UUID NOT NULL
@@ -130,13 +130,13 @@ async def create_app_structure():
                 modified TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(),
                 UNIQUE (project_id, system_name)
             );
-        '''
+        """,
     )
     # TODO: group revision?
 
     await db_base.execute(
         pool,
-        '''
+        """
             CREATE TABLE app.permission (
                 id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
                 system_name VARCHAR NOT NULL,
@@ -146,13 +146,13 @@ async def create_app_structure():
                 modified TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(),
                 UNIQUE (system_name)
             );
-        '''
+        """,
     )
     # TODO: permission revision?
 
     await db_base.execute(
         pool,
-        '''
+        """
             CREATE TABLE app.users_groups (
                 user_id UUID NOT NULL
                     REFERENCES app.user (id)
@@ -164,13 +164,13 @@ async def create_app_structure():
                 modified TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(),
                 UNIQUE (user_id, group_id)
             );
-        '''
+        """,
     )
     # TODO: users_groups revision?
 
     await db_base.execute(
         pool,
-        '''
+        """
             CREATE TABLE app.entity (
                 id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
                 project_id UUID NOT NULL
@@ -186,18 +186,18 @@ async def create_app_structure():
                 modified TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(),
                 UNIQUE (project_id, system_name)
             );
-        '''
+        """,
     )
     await db_base.execute(
         pool,
-        '''
+        """
             CREATE INDEX ON app.entity (project_id);
-        '''
+        """,
     )
 
     await db_base.execute(
         pool,
-        '''
+        """
             INSERT INTO app.entity (project_id, system_name, display_name, user_id)
             VALUES (
                 (SELECT project.id FROM app.project WHERE project.system_name = :project_name),
@@ -205,18 +205,18 @@ async def create_app_structure():
                 :display_name,
                 (SELECT "user".id FROM app.user WHERE "user".username = :username)
             );
-        ''',
+        """,
         {
-            'project_name': '__all__',
-            'system_name': '__all__',
-            'display_name': 'All entities',
-            'username': 'system',
-        }
+            "project_name": "__all__",
+            "system_name": "__all__",
+            "display_name": "All entities",
+            "username": "system",
+        },
     )
 
     await db_base.execute(
         pool,
-        '''
+        """
             CREATE TABLE app.entity_count (
                 id UUID NOT NULL
                     REFERENCES app.entity (id)
@@ -224,12 +224,12 @@ async def create_app_structure():
                 current_id INTEGER NOT NULL DEFAULT 0,
                 UNIQUE (id)
             );
-        '''
+        """,
     )
 
     await db_base.execute(
         pool,
-        '''
+        """
             CREATE TABLE app.entity_revision (
                 id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
                 entity_id UUID
@@ -246,7 +246,7 @@ async def create_app_structure():
                     ON UPDATE RESTRICT ON DELETE RESTRICT,
                 created TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now()
             );
-        '''
+        """,
     )
 
     # TODO: cardinality
@@ -254,7 +254,7 @@ async def create_app_structure():
 
     await db_base.execute(
         pool,
-        '''
+        """
             CREATE TABLE app.relation (
                 id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
                 project_id UUID NOT NULL
@@ -270,18 +270,18 @@ async def create_app_structure():
                 modified TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(),
                 UNIQUE (project_id, system_name)
             );
-        '''
+        """,
     )
     await db_base.execute(
         pool,
-        '''
+        """
             CREATE INDEX ON app.relation (project_id);
-        '''
+        """,
     )
 
     await db_base.execute(
         pool,
-        '''
+        """
             CREATE TABLE app.relation_count (
                 id UUID NOT NULL
                     REFERENCES app.relation (id)
@@ -289,12 +289,12 @@ async def create_app_structure():
                 current_id INTEGER NOT NULL DEFAULT 0,
                 UNIQUE (id)
             );
-        '''
+        """,
     )
 
     await db_base.execute(
         pool,
-        '''
+        """
             INSERT INTO app.relation (project_id, system_name, display_name, user_id)
             VALUES (
                 (SELECT project.id FROM app.project WHERE project.system_name = :project_name),
@@ -302,18 +302,18 @@ async def create_app_structure():
                 :display_name,
                 (SELECT "user".id FROM app.user WHERE "user".username = :username)
             );
-        ''',
+        """,
         {
-            'project_name': '__all__',
-            'system_name': '__all__',
-            'display_name': 'All relations',
-            'username': 'system',
-        }
+            "project_name": "__all__",
+            "system_name": "__all__",
+            "display_name": "All relations",
+            "username": "system",
+        },
     )
 
     await db_base.execute(
         pool,
-        '''
+        """
             CREATE TABLE app.relation_domain (
                 relation_id UUID NOT NULL
                     REFERENCES app.relation (id)
@@ -328,12 +328,12 @@ async def create_app_structure():
                 modified TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(),
                 UNIQUE (relation_id, entity_id)
             );
-        '''
+        """,
     )
 
     await db_base.execute(
         pool,
-        '''
+        """
             CREATE TABLE app.relation_range (
                 relation_id UUID NOT NULL
                     REFERENCES app.relation (id)
@@ -348,12 +348,12 @@ async def create_app_structure():
                 modified TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(),
                 UNIQUE (relation_id, entity_id)
             );
-        '''
+        """,
     )
 
     await db_base.execute(
         pool,
-        '''
+        """
             CREATE TABLE app.relation_revision (
                 id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
                 relation_id UUID
@@ -370,12 +370,12 @@ async def create_app_structure():
                     ON UPDATE RESTRICT ON DELETE RESTRICT,
                 created TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now()
             );
-        '''
+        """,
     )
 
     await db_base.execute(
         pool,
-        '''
+        """
             CREATE TABLE app.job (
                 id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
                 user_id UUID NOT NULL
@@ -398,7 +398,7 @@ async def create_app_structure():
                 started TIMESTAMP WITH TIME ZONE,
                 ended TIMESTAMP WITH TIME ZONE
             );
-        '''
+        """,
     )
 
     await pool.close()
@@ -410,5 +410,5 @@ def main():
     loop.close()
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

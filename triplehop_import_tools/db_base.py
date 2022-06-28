@@ -2,31 +2,33 @@ import asyncpg
 import buildpg
 import typing
 
-RENDERER = buildpg.main.Renderer(regex=r'(?<![a-z\\:]):([a-z][a-z0-9_]*)', sep='__')
+RENDERER = buildpg.main.Renderer(regex=r"(?<![a-z\\:]):([a-z][a-z0-9_]*)", sep="__")
+
 
 def dtu(string: str) -> str:
-    '''Replace all dashes in a string with underscores.'''
-    return string.replace('-', '_')
+    """Replace all dashes in a string with underscores."""
+    return string.replace("-", "_")
+
 
 def _render(query_template: str, params: typing.Dict[str, typing.Any] = None):
     if params is None:
         query, args = RENDERER(query_template)
     else:
         query, args = RENDERER(query_template, **params)
-    query = query.replace('\\:', ':')
+    query = query.replace("\\:", ":")
     return [query, args]
 
 
 async def _init_age(conn: asyncpg.connection.Connection):
     await conn.execute(
-        '''
+        """
             SET search_path = ag_catalog, "$user", public;
-        '''
+        """
     )
     await conn.execute(
-        '''
+        """
             LOAD '$libdir/plugins/age';
-        '''
+        """
     )
 
 
