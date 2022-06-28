@@ -24,9 +24,16 @@ python triplehop_import_tools/triplehop_import_tools/db_app.py
 Add User data
 -------------
 
-The user data can be imported using the `db_user_data.py` python script. A system user and anonymous user are created automatically, as well as an anonymous and global_admin group and all required permissions. The anonymous user is automatically linked to the anonymous group. Make sure a `config.py` file exists at the same level as the `triplehop_import_tools` with a `USER` and a `USERS_GROUPS` variable:
+The user data can be imported using the `db_user_data.py` python script. A system user and anonymous user are created automatically, as well as an anonymous and global_admin group and all required permissions. The anonymous user is automatically linked to the anonymous group. Make sure a `config.py` file exists at the same level as the `triplehop_import_tools` with a `DATABASE`, `USERS` and a `USERS_GROUPS` variable:
 
 ```py
+DATABASE = {
+    "host": "",
+    "database": "",
+    "user": "",
+    "password": "",
+}
+
 USERS = [
     {
         "username": "",
@@ -47,7 +54,7 @@ USERS_GROUPS = [
 The script can then be used as follows:
 
 ```sh
-python triplehop_import_tools/triplehop_import_tools/db_app.py
+python triplehop_import_tools/triplehop_import_tools/db_user_data.py
 ```
 
 Process config
