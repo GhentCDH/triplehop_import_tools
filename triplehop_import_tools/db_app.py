@@ -1,11 +1,8 @@
 import asyncio
 import asyncpg
-import sys
 
-import db_base
-
-sys.path.append("../..")
 import config
+import db_base
 
 
 async def create_app_structure():
