@@ -57,6 +57,26 @@ The script can then be used as follows:
 python triplehop_import_tools/triplehop_import_tools/db_user_data.py
 ```
 
+Add db structure for revisions
+------------------------------
+
+The db structure for revisions can be set up using the `db_revision.py` python script. Make sure a `config.py` file exists at the same level as the `triplehop_import_tools` with a `DATABASE` variable:
+
+```py
+DATABASE = {
+    "host": "",
+    "database": "",
+    "user": "",
+    "password": "",
+}
+```
+
+The script can then be used as follows:
+
+```sh
+python triplehop_import_tools/triplehop_import_tools/db_revision.py
+```
+
 Process config
 --------------
 
