@@ -1,7 +1,6 @@
 import asyncio
 import asyncpg
 import json
-import os
 
 import config
 import db_base
