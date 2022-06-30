@@ -196,25 +196,6 @@ async def create_app_structure():
     await db_base.execute(
         pool,
         """
-            INSERT INTO app.entity (project_id, system_name, display_name, user_id)
-            VALUES (
-                (SELECT project.id FROM app.project WHERE project.system_name = :project_name),
-                :system_name,
-                :display_name,
-                (SELECT "user".id FROM app.user WHERE "user".username = :username)
-            );
-        """,
-        {
-            "project_name": "__all__",
-            "system_name": "__all__",
-            "display_name": "All entities",
-            "username": "system",
-        },
-    )
-
-    await db_base.execute(
-        pool,
-        """
             CREATE TABLE app.entity_count (
                 id UUID NOT NULL
                     REFERENCES app.entity (id)
@@ -288,25 +269,6 @@ async def create_app_structure():
                 UNIQUE (id)
             );
         """,
-    )
-
-    await db_base.execute(
-        pool,
-        """
-            INSERT INTO app.relation (project_id, system_name, display_name, user_id)
-            VALUES (
-                (SELECT project.id FROM app.project WHERE project.system_name = :project_name),
-                :system_name,
-                :display_name,
-                (SELECT "user".id FROM app.user WHERE "user".username = :username)
-            );
-        """,
-        {
-            "project_name": "__all__",
-            "system_name": "__all__",
-            "display_name": "All relations",
-            "username": "system",
-        },
     )
 
     await db_base.execute(

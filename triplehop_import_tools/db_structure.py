@@ -106,44 +106,6 @@ async def create_project_config(
             "username": username,
         },
     )
-    await db_base.execute(
-        pool,
-        """
-            INSERT INTO app.entity (project_id, system_name, display_name, user_id)
-            VALUES (
-                (SELECT project.id FROM app.project WHERE project.system_name = :project_name),
-                :system_name,
-                :display_name,
-                (SELECT "user".id FROM app.user WHERE "user".username = :username)
-            )
-            ON CONFLICT DO NOTHING;
-        """,
-        {
-            "project_name": system_name,
-            "system_name": "__all__",
-            "display_name": "All entities",
-            "username": username,
-        },
-    )
-    await db_base.execute(
-        pool,
-        """
-            INSERT INTO app.relation (project_id, system_name, display_name, user_id)
-            VALUES (
-                (SELECT project.id FROM app.project WHERE project.system_name = :project_name),
-                :system_name,
-                :display_name,
-                (SELECT "user".id FROM app.user WHERE "user".username = :username)
-            )
-            ON CONFLICT DO NOTHING;
-        """,
-        {
-            "project_name": system_name,
-            "system_name": "__all__",
-            "display_name": "All relations",
-            "username": username,
-        },
-    )
 
 
 async def create_entity_config(
