@@ -5,8 +5,8 @@ import typing
 import db_base
 
 
-def read_config_from_file(project_name: str, type: str, name: str):
-    with open(f"./config/{project_name}/{type}/{name}.json") as config_file:
+def read_config_from_file(type: str, name: str):
+    with open(f"./config/{type}/{name}.json") as config_file:
         return config_file.read()
 
 
