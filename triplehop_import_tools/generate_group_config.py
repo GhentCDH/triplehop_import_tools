@@ -24,7 +24,9 @@ async def generate_config():
     )
     groups = {}
     for record in records:
-        groups[record["group_name"]] = {
+        if not record["project_name"] in groups:
+            groups[record["project_name"]] = {}
+        groups[record["project_name"]][record["group_name"]] = {
             "id": record["id"],
         }
 
