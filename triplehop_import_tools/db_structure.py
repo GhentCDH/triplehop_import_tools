@@ -6,8 +6,8 @@ import asyncpg
 import db_base
 
 
-def read_config_from_file(type: str, name: str):
-    with open(f"./config/{type}/{name}.json") as config_file:
+def read_config_from_file(type: str, system_name: str):
+    with open(f"config/{type}/{system_name}.json") as config_file:
         return config_file.read()
 
 
