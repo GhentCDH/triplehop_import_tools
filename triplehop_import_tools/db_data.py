@@ -1,3 +1,4 @@
+import csv
 import json
 import re
 import typing
@@ -6,8 +7,7 @@ import aiocache
 import asyncpg
 import tqdm
 
-import db_base
-import db_structure
+from triplehop_import_tools import db_base, db_structure
 
 RE_SOURCE_PROP_INDEX = re.compile(r"^(?P<property>[a-z_]*)\[(?P<index>[0-9]*)\]$")
 
@@ -102,9 +102,8 @@ def age_format_properties(properties: typing.Dict, prefix: str = ""):
 
 
 def create_properties(
-    row: typing.List,
+    row: typing.Dict,
     db_props_lookup: typing.Dict,
-    file_header_lookup: typing.Dict,
     prop_conf: typing.Dict,
 ):
     properties = {}
@@ -114,7 +113,7 @@ def create_properties(
         else:
             db_key = db_props_lookup[key]
         if conf[0] == "int":
-            value = row[file_header_lookup[conf[1]]]
+            value = row[conf[1]]
             if value in [""]:
                 continue
             properties[db_key] = {
@@ -123,7 +122,7 @@ def create_properties(
             }
             continue
         if conf[0] == "string":
-            value = row[file_header_lookup[conf[1]]]
+            value = row[conf[1]]
             if value in [""]:
                 continue
             properties[db_key] = {
@@ -132,7 +131,7 @@ def create_properties(
             }
             continue
         if conf[0] == "edtf":
-            value = row[file_header_lookup[conf[1]]]
+            value = row[conf[1]]
             if value in [""]:
                 continue
             properties[db_key] = {
@@ -141,7 +140,7 @@ def create_properties(
             }
             continue
         if conf[0] == "[string]":
-            value = row[file_header_lookup[conf[1]]]
+            value = row[conf[1]]
             if value in [""]:
                 continue
             properties[db_key] = {
@@ -150,7 +149,7 @@ def create_properties(
             }
             continue
         if conf[0] == "geometry":
-            value = row[file_header_lookup[conf[1]]]
+            value = row[conf[1]]
             if value in [""]:
                 continue
             properties[db_key] = {
@@ -163,24 +162,76 @@ def create_properties(
     return properties
 
 
-async def batch(method: typing.Callable, data: typing.Iterable, *args):
+async def batch(method: typing.Callable, data: csv.DictReader, **kwargs):
     counter = 0
     batch = []
     for row in tqdm.tqdm([r for r in data]):
         counter += 1
         batch.append(row)
         if not counter % 5000:
-            await method(*args, batch)
+            await method(**kwargs, batch=batch)
             batch = []
     if len(batch):
-        await method(*args, batch)
+        await method(**kwargs, batch=batch)
+
+
+async def import_entities(
+    pool: asyncpg.pool.Pool,
+    project_name: str,
+    username: str,
+    conf: typing.Dict,
+    lookup: typing.Dict = None,
+    lookup_props: typing.List[str] = None,
+):
+    print(f'Importing entity {conf["entity_type_name"]}')
+    with open(f'data/{conf["filename"]}') as data_file:
+        data_reader = csv.DictReader(data_file)
+
+        params = {
+            "project_name": project_name,
+            "entity_type_name": conf["entity_type_name"],
+            "username": username,
+        }
+
+        db_props_lookup = await get_entity_props_lookup(
+            pool=pool,
+            project_name=project_name,
+            entity_type_name=conf["entity_type_name"],
+        )
+
+        await batch(
+            method=create_entities,
+            data=data_reader,
+            pool=pool,
+            params=params,
+            db_props_lookup=db_props_lookup,
+            prop_conf=conf["props"],
+        )
+
+    print(f'Creating lookup and index for entity {conf["entity_type_name"]}')
+
+    if conf["entity_type_name"] not in lookup:
+        lookup[conf["entity_type_name"]] = {}
+    for lookup_prop in lookup_props:
+        lookup[conf["entity_type_name"]][lookup_prop] = await create_lookup(
+            pool=pool,
+            project_name=project_name,
+            type_name=conf["entity_type_name"],
+            prop_name=lookup_prop,
+            type="entity",
+        )
+
+    await create_entity_index(
+        pool=pool,
+        project_name=project_name,
+        entity_type_name=conf["entity_type_name"],
+    )
 
 
 async def create_entities(
     pool: asyncpg.pool.Pool,
     params: typing.Dict,
     db_props_lookup: typing.Dict,
-    file_header_lookup: typing.Dict,
     prop_conf: typing.Dict,
     batch: typing.List,
 ) -> None:
@@ -206,7 +257,9 @@ async def create_entities(
 
     for row in batch:
         properties = create_properties(
-            row, db_props_lookup, file_header_lookup, prop_conf
+            row=row,
+            db_props_lookup=db_props_lookup,
+            prop_conf=prop_conf,
         )
         if "id" in prop_conf:
             max_id = max(max_id, properties["id"]["value"])
@@ -412,7 +465,7 @@ async def create_lookup(
     project_name: str,
     type_name: str,
     prop_name: str,
-    type: str = "entity",
+    type: str,
 ) -> typing.Dict:
     project_id = await db_structure.get_project_id(pool, project_name)
     if type == "entity":

@@ -3,7 +3,7 @@ import typing
 import aiocache
 import asyncpg
 
-import db_base
+from triplehop_import_tools import db_base
 
 
 def read_config_from_file(type: str, system_name: str):
