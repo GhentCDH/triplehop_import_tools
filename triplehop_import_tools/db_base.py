@@ -1,6 +1,7 @@
+import typing
+
 import asyncpg
 import buildpg
-import typing
 
 RENDERER = buildpg.main.Renderer(regex=r"(?<![a-z\\:]):([a-z][a-z0-9_]*)", sep="__")
 

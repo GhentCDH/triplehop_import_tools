@@ -1,6 +1,7 @@
+import typing
+
 import aiocache
 import asyncpg
-import typing
 
 import db_base
 

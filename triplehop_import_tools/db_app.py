@@ -1,7 +1,8 @@
 import asyncio
-import asyncpg
 
+import asyncpg
 import config
+
 import db_base
 
 

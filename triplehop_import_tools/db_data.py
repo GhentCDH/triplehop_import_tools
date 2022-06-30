@@ -1,9 +1,10 @@
-import aiocache
-import asyncpg
 import json
 import re
-import tqdm
 import typing
+
+import aiocache
+import asyncpg
+import tqdm
 
 import db_base
 import db_structure
