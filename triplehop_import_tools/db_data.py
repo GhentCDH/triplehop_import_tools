@@ -307,11 +307,56 @@ async def create_entities(
     # TODO: revision
 
 
+async def import_relations(
+    pool: asyncpg.pool.Pool,
+    project_name: str,
+    username: str,
+    conf: typing.Dict,
+    lookups: typing.Dict = None,
+):
+    print(f'Importing relation {conf["relation_type_name"]}')
+    with open(f'data/{conf["filename"]}') as data_file:
+        data_reader = csv.DictReader(data_file)
+
+        params = {
+            "project_name": project_name,
+            "relation_type_name": conf["relation_type_name"],
+            "domain_type_name": conf["domain_type_name"],
+            "range_type_name": conf["range_type_name"],
+            "username": username,
+        }
+
+        db_props_lookup = await get_relation_props_lookup(
+            pool=pool,
+            project_name=project_name,
+            relation_type_name=conf["relation_type_name"],
+        )
+
+        await batch(
+            method=create_relations,
+            data=data_reader,
+            pool=pool,
+            params=params,
+            db_props_lookup=db_props_lookup,
+            domain_conf=conf["domain"],
+            range_conf=conf["range"],
+            prop_conf=conf["props"],
+            lookups=lookups,
+        )
+
+    print(f'Creating lookup and index for relation entity {conf["relation_type_name"]}')
+
+    await create_relation_entity_index(
+        pool=pool,
+        project_name=project_name,
+        relation_type_name=conf["relation_type_name"],
+    )
+
+
 async def create_relations(
     pool: asyncpg.pool.Pool,
     params: typing.Dict,
     db_props_lookup: typing.Dict,
-    file_header_lookup: typing.Dict,
     domain_conf: typing.Dict,
     range_conf: typing.Dict,
     prop_conf: typing.Dict,
@@ -344,14 +389,10 @@ async def create_relations(
     r_prop_name = list(range_conf.keys())[0]
 
     for row in batch:
-        properties = create_properties(
-            row, db_props_lookup, file_header_lookup, prop_conf
-        )
+        properties = create_properties(row, db_props_lookup, prop_conf)
 
         domain_prop_values = []
-        d_prop_values = row[file_header_lookup[list(domain_conf.values())[0][1]]].split(
-            "|"
-        )
+        d_prop_values = row[list(domain_conf.values())[0][1]].split("|")
         for d_prop_value in d_prop_values:
             if d_prop_value == "":
                 continue
@@ -365,9 +406,7 @@ async def create_relations(
             )
 
         range_prop_values = []
-        r_prop_values = row[file_header_lookup[list(range_conf.values())[0][1]]].split(
-            "|"
-        )
+        r_prop_values = row[list(range_conf.values())[0][1]].split("|")
         for r_prop_value in r_prop_values:
             if r_prop_value == "":
                 continue
