@@ -180,7 +180,7 @@ async def import_entities(
     project_name: str,
     username: str,
     conf: typing.Dict,
-    lookup: typing.Dict = None,
+    lookups: typing.Dict = None,
     lookup_props: typing.List[str] = None,
 ):
     print(f'Importing entity {conf["entity_type_name"]}')
@@ -210,10 +210,10 @@ async def import_entities(
 
     print(f'Creating lookup and index for entity {conf["entity_type_name"]}')
 
-    if conf["entity_type_name"] not in lookup:
-        lookup[conf["entity_type_name"]] = {}
+    if conf["entity_type_name"] not in lookups:
+        lookups[conf["entity_type_name"]] = {}
     for lookup_prop in lookup_props:
-        lookup[conf["entity_type_name"]][lookup_prop] = await create_lookup(
+        lookups[conf["entity_type_name"]][lookup_prop] = await create_lookup(
             pool=pool,
             project_name=project_name,
             type_name=conf["entity_type_name"],
