@@ -5,7 +5,7 @@ import typing
 
 import aiocache
 import asyncpg
-import tqdm
+from rich.progress import track
 
 from triplehop_import_tools import db_base, db_structure
 
@@ -162,10 +162,15 @@ def create_properties(
     return properties
 
 
-async def batch(method: typing.Callable, data: csv.DictReader, **kwargs):
+async def batch(
+    method: typing.Callable,
+    data: csv.DictReader,
+    message: str,
+    **kwargs,
+):
     counter = 0
     batch = []
-    for row in tqdm.tqdm([r for r in data]):
+    for row in track([r for r in data], description=message):
         counter += 1
         batch.append(row)
         if not counter % 5000:
@@ -183,7 +188,6 @@ async def import_entities(
     lookups: typing.Dict = None,
     lookup_props: typing.List[str] = None,
 ):
-    print(f'Importing entity {conf["entity_type_name"]}')
     with open(f'data/{conf["filename"]}') as data_file:
         data_reader = csv.DictReader(data_file)
 
@@ -202,6 +206,7 @@ async def import_entities(
         await batch(
             method=create_entities,
             data=data_reader,
+            message=f'Importing entity {conf["entity_type_name"]}',
             pool=pool,
             params=params,
             db_props_lookup=db_props_lookup,
@@ -314,7 +319,6 @@ async def import_relations(
     conf: typing.Dict,
     lookups: typing.Dict = None,
 ):
-    print(f'Importing relation {conf["relation_type_name"]}')
     with open(f'data/{conf["filename"]}') as data_file:
         data_reader = csv.DictReader(data_file)
 
@@ -335,6 +339,7 @@ async def import_relations(
         await batch(
             method=create_relations,
             data=data_reader,
+            message=f'Importing relation {conf["relation_type_name"]}',
             pool=pool,
             params=params,
             db_props_lookup=db_props_lookup,
