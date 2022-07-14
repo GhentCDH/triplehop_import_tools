@@ -5,7 +5,7 @@ import typing
 
 import aiocache
 import asyncpg
-from rich.progress import track
+import rich.progress
 
 from triplehop_import_tools import db_base, db_structure
 
@@ -170,7 +170,7 @@ async def batch(
 ):
     counter = 0
     batch = []
-    for row in track([r for r in data], description=message):
+    for row in rich.progress.track([r for r in data], description=message):
         counter += 1
         batch.append(row)
         if not counter % 5000:
