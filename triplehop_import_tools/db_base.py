@@ -51,7 +51,7 @@ async def execute(
 async def executemany(
     pool: asyncpg.pool.Pool,
     query_template,
-    params: typing.Dict[str, typing.Any] = None,
+    params: typing.List[typing.Dict[str, typing.Any]],
     age: bool = False,
 ):
     async with pool.acquire() as conn:

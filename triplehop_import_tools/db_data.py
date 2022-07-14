@@ -185,8 +185,8 @@ async def import_entities(
     project_name: str,
     username: str,
     conf: typing.Dict,
-    lookups: typing.Dict = None,
-    lookup_props: typing.List[str] = None,
+    lookups: typing.Dict,
+    lookup_props: typing.List[str],
 ):
     with open(f'data/{conf["filename"]}') as data_file:
         data_reader = csv.DictReader(data_file)
@@ -258,7 +258,7 @@ async def create_entities(
     max_id = 0
     # key: placeholder string
     # value: typing.List with corresponding parameters
-    props_collection = {}
+    props_collection: typing.Dict[str, typing.List] = {}
 
     for row in batch:
         properties = create_properties(
@@ -386,7 +386,7 @@ async def create_relations(
     max_id = 0
     # key: placeholder strings separated by | (domain_placeholder|range_placeholder|placeholder)
     # value: typing.List with corresponding parameters
-    props_collection = {}
+    props_collection: typing.Dict[str, typing.List] = {}
 
     d_entity_type_name = params["domain_type_name"]
     d_prop_name = list(domain_conf.keys())[0]
@@ -716,7 +716,7 @@ async def create_entity_source_relations(
     project_id = await db_structure.get_project_id(pool, project_name)
 
     # group parameters by domain, range and source properties to be added
-    props_collection = {}
+    props_collection: typing.Dict[str, typing.List] = {}
 
     id = await db_base.fetchval(
         pool,
@@ -734,7 +734,13 @@ async def create_entity_source_relations(
         # Add domain and range to lookups
         for et in [row["entity_type"], row["source_type"]]:
             if et not in lookups:
-                lookups[et] = await create_lookup(pool, project_name, et, "id")
+                lookups[et] = await create_lookup(
+                    pool=pool,
+                    project_name=project_name,
+                    type_name=et,
+                    prop_name="id",
+                    type="entity",
+                )
 
         # Check if the entity and source nodes exist
         if row["entity_id"] not in lookups[row["entity_type"]]:
@@ -826,7 +832,7 @@ async def create_relation_source_relations(
     project_id = await db_structure.get_project_id(pool, project_name)
 
     # group parameters by domain, range and source properties to be added
-    props_collection = {}
+    props_collection: typing.Dict[str, typing.List] = {}
 
     id = await db_base.fetchval(
         pool,
@@ -849,7 +855,13 @@ async def create_relation_source_relations(
 
         et = row["source_type"]
         if f"e_{et}" not in lookups:
-            lookups[f"e_{et}"] = await create_lookup(pool, project_name, et, "id")
+            lookups[f"e_{et}"] = await create_lookup(
+                pool=pool,
+                project_name=project_name,
+                type_name=et,
+                prop_name="id",
+                type="entity",
+            )
 
         # Check if the entity and source nodes exist
         if row["relation_id"] not in lookups[f'r_{row["relation_type"]}']:

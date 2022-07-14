@@ -2,6 +2,7 @@ import copy
 import json
 import os
 import re
+import typing
 import uuid
 
 RE_FIELD_CONVERSION = re.compile(
@@ -74,7 +75,7 @@ def replace_group(project_config: dict, name: str) -> str:
 
 
 def process() -> None:
-    project_config = {
+    project_config: typing.Dict[str, typing.Dict] = {
         "entity": {},
         "relation": {},
     }
