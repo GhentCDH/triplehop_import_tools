@@ -204,9 +204,19 @@ async def create_relation_config(
         pool,
         """
             DELETE FROM app.relation_domain
-            WHERE relation_id = (SELECT relation.id FROM app.relation WHERE system_name = :relation_name);
+            WHERE relation_id = (
+                SELECT relation.id
+                FROM app.relation
+                WHERE project_id = (
+                    SELECT project.id
+                    FROM app.project
+                    WHERE system_name = :project_name
+                )
+                AND system_name = :relation_name
+            );
         """,
         {
+            "project_name": project_name,
             "relation_name": system_name,
         },
     )
@@ -216,13 +226,23 @@ async def create_relation_config(
             """
                 INSERT INTO app.relation_domain (relation_id, entity_id, user_id)
                 VALUES (
-                    (SELECT relation.id FROM app.relation WHERE system_name = :relation_name),
+                    (
+                        SELECT relation.id
+                        FROM app.relation
+                        WHERE project_id = (
+                            SELECT project.id
+                            FROM app.project
+                            WHERE system_name = :project_name
+                        )
+                        AND system_name = :relation_name
+                    ),
                     (SELECT entity.id FROM app.entity WHERE system_name = :entity_type_name),
                     (SELECT "user".id FROM app.user WHERE "user".username = :username)
                 )
                 ON CONFLICT DO NOTHING;
             """,
             {
+                "project_name": project_name,
                 "relation_name": system_name,
                 "entity_type_name": entity_type_name,
                 "username": username,
@@ -233,9 +253,19 @@ async def create_relation_config(
         pool,
         """
             DELETE FROM app.relation_range
-            WHERE relation_id = (SELECT relation.id FROM app.relation WHERE system_name = :relation_name);
+            WHERE relation_id = (
+                SELECT relation.id
+                FROM app.relation
+                WHERE project_id = (
+                    SELECT project.id
+                    FROM app.project
+                    WHERE system_name = :project_name
+                )
+                AND system_name = :relation_name
+            );
         """,
         {
+            "project_name": project_name,
             "relation_name": system_name,
         },
     )
@@ -245,13 +275,23 @@ async def create_relation_config(
             """
                 INSERT INTO app.relation_range (relation_id, entity_id, user_id)
                 VALUES (
-                    (SELECT relation.id FROM app.relation WHERE system_name = :relation_name),
+                    (
+                        SELECT relation.id
+                        FROM app.relation
+                        WHERE project_id = (
+                            SELECT project.id
+                            FROM app.project
+                            WHERE system_name = :project_name
+                        )
+                        AND system_name = :relation_name
+                    ),
                     (SELECT entity.id FROM app.entity WHERE system_name = :entity_type_name),
                     (SELECT "user".id FROM app.user WHERE "user".username = :username)
                 )
                 ON CONFLICT DO NOTHING;
             """,
             {
+                "project_name": project_name,
                 "relation_name": system_name,
                 "entity_type_name": entity_type_name,
                 "username": username,
@@ -263,10 +303,16 @@ async def create_relation_config(
             INSERT INTO app.relation_revision (relation_id, project_id, system_name, display_name, config, user_id)
             SELECT id, project_id, system_name, display_name, config, user_id
             FROM app.relation
-            WHERE system_name = :system_name;
+            WHERE project_id = (
+                SELECT project.id
+                FROM app.project
+                WHERE system_name = :project_name
+            )
+            AND system_name = :relation_name
         """,
         {
-            "system_name": system_name,
+            "project_name": project_name,
+            "relation_name": system_name,
         },
     )
     await db_base.execute(
@@ -274,13 +320,23 @@ async def create_relation_config(
         """
             INSERT INTO app.relation_count (id)
             VALUES (
-                (SELECT relation.id FROM app.relation WHERE system_name = :system_name)
+                (
+                    SELECT relation.id
+                    FROM app.relation
+                        WHERE project_id = (
+                        SELECT project.id
+                        FROM app.project
+                        WHERE system_name = :project_name
+                    )
+                    AND system_name = :relation_name
+                )
             )
             ON CONFLICT (id) DO UPDATE
             SET current_id = 0;
         """,
         {
-            "system_name": system_name,
+            "project_name": project_name,
+            "relation_name": system_name,
         },
     )
 
