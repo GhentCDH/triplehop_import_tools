@@ -1,6 +1,7 @@
 import csv
 import json
 import re
+import time
 import typing
 
 import aiocache
@@ -170,7 +171,9 @@ async def batch(
 ):
     counter = 0
     batch = []
-    for row in rich.progress.track([r for r in data], description=message):
+    data_sequence = [r for r in data]
+    start_time = time.time()
+    for row in rich.progress.track(data_sequence, description=message):
         counter += 1
         batch.append(row)
         if not counter % 5000:
@@ -178,6 +181,10 @@ async def batch(
             batch = []
     if len(batch):
         await method(**kwargs, batch=batch)
+    total_time = time.time() - start_time
+    print(
+        f"Total time: {total_time}, iterations/second: {len(data_sequence) / total_time}"
+    )
 
 
 async def import_entities(
