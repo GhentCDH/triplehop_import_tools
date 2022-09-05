@@ -714,13 +714,38 @@ async def delete_source_relations(
         print("No source relations found")
 
 
-async def create_entity_source_relations(
+async def import_entity_source_relations(
     pool: asyncpg.pool.Pool,
     project_name: str,
+    username: str,
+    conf: typing.Dict,
+    lookups: typing.Dict,
+):
+    with open(f'data/{conf["filename"]}') as data_file:
+        data_reader = csv.DictReader(data_file)
+
+        params = {
+            "project_name": project_name,
+            "username": username,
+        }
+
+        await batch(
+            method=create_entity_source_relations,
+            data=data_reader,
+            message="Importing entity sources",
+            pool=pool,
+            params=params,
+            lookups=lookups,
+        )
+
+
+async def create_entity_source_relations(
+    pool: asyncpg.pool.Pool,
+    params: typing.Dict,
     lookups: typing.Dict,
     batch: typing.List,
 ) -> None:
-    project_id = await db_structure.get_project_id(pool, project_name)
+    project_id = await db_structure.get_project_id(pool, params["project_name"])
 
     # group parameters by domain, range and source properties to be added
     props_collection: typing.Dict[str, typing.List] = {}
@@ -737,23 +762,22 @@ async def create_entity_source_relations(
     )
 
     for row in batch:
-
         # Add domain and range to lookups
         for et in [row["entity_type"], row["source_type"]]:
             if et not in lookups:
                 lookups[et] = await create_lookup(
                     pool=pool,
-                    project_name=project_name,
+                    project_name=params["project_name"],
                     type_name=et,
                     prop_name="id",
                     type="entity",
                 )
 
         # Check if the entity and source nodes exist
-        if row["entity_id"] not in lookups[row["entity_type"]]:
+        if int(row["entity_id"]) not in lookups[row["entity_type"]]:
             print(f'{row["entity_id"]} not found in {row["entity_type"]}')
             continue
-        if row["source_id"] not in lookups[row["source_type"]]:
+        if int(row["source_id"]) not in lookups[row["source_type"]]:
             print(f'{row["source_id"]} not found in {row["source_type"]}')
             continue
 
@@ -765,12 +789,12 @@ async def create_entity_source_relations(
 
         # Create lookup to convert property system names to property ids
         props_lookup = await get_entity_props_lookup(
-            pool, project_name, row["entity_type"]
+            pool, params["project_name"], row["entity_type"]
         )
 
         id += 1
         uuid_props = []
-        for p in row["properties"]:
+        for p in row["properties"].split("|"):
             m = RE_SOURCE_PROP_INDEX.match(p)
             if m:
                 uuid_props.append(
@@ -780,14 +804,14 @@ async def create_entity_source_relations(
                 uuid_props.append(props_lookup[p])
 
         props = {
-            "domain_id": lookups[row["entity_type"]][row["entity_id"]],
-            "range_id": lookups[row["source_type"]][row["source_id"]],
+            "domain_id": lookups[row["entity_type"]][int(row["entity_id"])],
+            "range_id": lookups[row["source_type"]][int(row["source_id"])],
             "id": id,
             "properties": uuid_props,
         }
         # Only add source_props if not empty
         if row["source_props"]:
-            props["source_props"] = row["source_props"]
+            props["source_props"] = json.loads(row["source_props"])
         props_collection[key].append(props)
 
     for placeholder in props_collection:
@@ -823,20 +847,51 @@ async def create_entity_source_relations(
             UPDATE app.relation_count
             SET current_id = :id
             WHERE id = (
-                SELECT id from app.relation where system_name = :relation_type_name
+                SELECT id FROM app.relation
+                WHERE project_id = :project_id
+                AND system_name = :relation_type_name
             )
         """,
-        {"id": id, "relation_type_name": "_source_"},
+        {
+            "id": id,
+            "project_id": project_id,
+            "relation_type_name": "_source_",
+        },
     )
+
+
+async def import_relation_source_relations(
+    pool: asyncpg.pool.Pool,
+    project_name: str,
+    username: str,
+    conf: typing.Dict,
+    lookups: typing.Dict,
+):
+    with open(f'data/{conf["filename"]}') as data_file:
+        data_reader = csv.DictReader(data_file)
+
+        params = {
+            "project_name": project_name,
+            "username": username,
+        }
+
+        await batch(
+            method=create_relation_source_relations,
+            data=data_reader,
+            message="Importing relation sources",
+            pool=pool,
+            params=params,
+            lookups=lookups,
+        )
 
 
 async def create_relation_source_relations(
     pool: asyncpg.pool.Pool,
-    project_name: str,
+    params: typing.Dict,
     lookups: typing.Dict,
     batch: typing.List,
 ) -> None:
-    project_id = await db_structure.get_project_id(pool, project_name)
+    project_id = await db_structure.get_project_id(pool, params["project_name"])
 
     # group parameters by domain, range and source properties to be added
     props_collection: typing.Dict[str, typing.List] = {}
@@ -857,24 +912,24 @@ async def create_relation_source_relations(
         rt = row["relation_type"]
         if f"r_{rt}" not in lookups:
             lookups[f"r_{rt}"] = await create_lookup(
-                pool, project_name, rt, "id", "relation"
+                pool, params["project_name"], rt, "id", "relation"
             )
 
         et = row["source_type"]
         if f"e_{et}" not in lookups:
             lookups[f"e_{et}"] = await create_lookup(
                 pool=pool,
-                project_name=project_name,
+                project_name=params["project_name"],
                 type_name=et,
                 prop_name="id",
                 type="entity",
             )
 
         # Check if the entity and source nodes exist
-        if row["relation_id"] not in lookups[f'r_{row["relation_type"]}']:
+        if int(row["relation_id"]) not in lookups[f'r_{row["relation_type"]}']:
             print(f'{row["relation_id"]} not found in {row["relation_type"]}')
             continue
-        if row["source_id"] not in lookups[f'e_{row["source_type"]}']:
+        if int(row["source_id"]) not in lookups[f'e_{row["source_type"]}']:
             print(f'{row["source_id"]} not found in {row["source_type"]}')
             continue
 
@@ -886,13 +941,13 @@ async def create_relation_source_relations(
 
         # Create lookup to convert property system names to property ids
         props_lookup = await get_relation_props_lookup(
-            pool, project_name, row["relation_type"]
+            pool, params["project_name"], row["relation_type"]
         )
         props_lookup["__rel__"] = "__rel__"
 
         id += 1
         uuid_props = []
-        for p in row["properties"]:
+        for p in row["properties"].split("|"):
             m = RE_SOURCE_PROP_INDEX.match(p)
             if m:
                 uuid_props.append(
@@ -901,14 +956,14 @@ async def create_relation_source_relations(
             else:
                 uuid_props.append(props_lookup[p])
         props = {
-            "domain_id": lookups[f'r_{row["relation_type"]}'][row["relation_id"]],
-            "range_id": lookups[f'e_{row["source_type"]}'][row["source_id"]],
+            "domain_id": lookups[f'r_{row["relation_type"]}'][int(row["relation_id"])],
+            "range_id": lookups[f'e_{row["source_type"]}'][int(row["source_id"])],
             "id": id,
             "properties": uuid_props,
         }
         # Only add source_props if not empty
         if row["source_props"]:
-            props["source_props"] = row["source_props"]
+            props["source_props"] = json.loads(row["source_props"])
         props_collection[key].append(props)
 
     for placeholder in props_collection:
@@ -944,8 +999,14 @@ async def create_relation_source_relations(
             UPDATE app.relation_count
             SET current_id = :id
             WHERE id = (
-                SELECT id from app.relation where system_name = :relation_type_name
+                SELECT id FROM app.relation
+                WHERE project_id = :project_id
+                AND system_name = :relation_type_name
             )
         """,
-        {"id": id, "relation_type_name": "_source_"},
+        {
+            "id": id,
+            "project_id": project_id,
+            "relation_type_name": "_source_",
+        },
     )
