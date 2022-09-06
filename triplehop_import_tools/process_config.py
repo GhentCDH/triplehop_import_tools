@@ -83,6 +83,8 @@ def process() -> None:
     if os.path.exists(f"human_readable_config/relations.json"):
         with open(f"human_readable_config/relations.json") as f:
             project_config["relations_base"] = json.load(f)
+    else:
+        print("Please process config again after generating relation config.")
     # Load group config: ids might be needed when replacing
     if os.path.exists(f"human_readable_config/groups.json"):
         with open(f"human_readable_config/groups.json") as f:
@@ -136,89 +138,94 @@ def process() -> None:
                             replace_group(project_config, group) for group in groups
                         ]
 
-    # second iteraton: display, edit
-    for er in ["entity", "relation"]:
-        for fn in os.listdir(f"human_readable_config/{er}"):
-            name = fn.split(".")[0]
-            with open(f"human_readable_config/{er}/{fn}") as f:
-                config = json.load(f)
-            if "display" in config:
-                project_config[er][name]["display"] = copy.deepcopy(config["display"])
-                display = project_config[er][name]["display"]
-                if "title" in display:
-                    display["title"] = replace(
-                        project_config, er, name, display["title"]
+    if "relations_base" in project_config:
+        # second iteraton: display, edit
+        for er in ["entity", "relation"]:
+            for fn in os.listdir(f"human_readable_config/{er}"):
+                name = fn.split(".")[0]
+                with open(f"human_readable_config/{er}/{fn}") as f:
+                    config = json.load(f)
+                if "display" in config:
+                    project_config[er][name]["display"] = copy.deepcopy(
+                        config["display"]
                     )
-                if "layout" in display:
-                    # TODO: add uuid to layout?
-                    for layout in display["layout"]:
-                        if "label" in layout:
-                            layout["label"] = replace(
-                                project_config, er, name, layout["label"]
-                            )
-                        if "fields" in layout:
-                            for field in layout["fields"]:
-                                field["field"] = replace(
-                                    project_config, er, name, field["field"]
+                    display = project_config[er][name]["display"]
+                    if "title" in display:
+                        display["title"] = replace(
+                            project_config, er, name, display["title"]
+                        )
+                    if "layout" in display:
+                        # TODO: add uuid to layout?
+                        for layout in display["layout"]:
+                            if "label" in layout:
+                                layout["label"] = replace(
+                                    project_config, er, name, layout["label"]
                                 )
-            if "edit" in config:
-                project_config[er][name]["edit"] = copy.deepcopy(config["edit"])
-                edit = project_config[er][name]["edit"]
-                if "layout" in edit:
-                    for layout in edit["layout"]:
-                        if "label" in layout:
-                            layout["label"] = replace(
-                                project_config, er, name, layout["label"]
-                            )
-                        if "fields" in layout:
-                            for field in layout["fields"]:
-                                field["field"] = replace(
-                                    project_config, er, name, field["field"]
+                            if "fields" in layout:
+                                for field in layout["fields"]:
+                                    field["field"] = replace(
+                                        project_config, er, name, field["field"]
+                                    )
+                if "edit" in config:
+                    project_config[er][name]["edit"] = copy.deepcopy(config["edit"])
+                    edit = project_config[er][name]["edit"]
+                    if "layout" in edit:
+                        for layout in edit["layout"]:
+                            if "label" in layout:
+                                layout["label"] = replace(
+                                    project_config, er, name, layout["label"]
                                 )
+                            if "fields" in layout:
+                                for field in layout["fields"]:
+                                    field["field"] = replace(
+                                        project_config, er, name, field["field"]
+                                    )
 
-    # third iteration: es_data, es_display
-    for er in ["entity", "relation"]:
-        for fn in os.listdir(f"human_readable_config/{er}"):
-            name = fn.split(".")[0]
-            with open(f"human_readable_config/{er}/{fn}") as f:
-                config = json.load(f)
-            if "es_data" in config:
-                project_config[er][name]["es_data"] = copy.deepcopy(config["es_data"])
-                es_data = project_config[er][name]["es_data"]
-                if "fields" in es_data:
-                    for field in es_data["fields"]:
-                        if field["type"] == "nested":
-                            field["base"] = replace(
-                                project_config, er, name, field["base"]
-                            )
-                            for part in field["parts"].values():
-                                part["selector_value"] = replace(
-                                    project_config, er, name, part["selector_value"]
+        # third iteration: es_data, es_display
+        for er in ["entity", "relation"]:
+            for fn in os.listdir(f"human_readable_config/{er}"):
+                name = fn.split(".")[0]
+                with open(f"human_readable_config/{er}/{fn}") as f:
+                    config = json.load(f)
+                if "es_data" in config:
+                    project_config[er][name]["es_data"] = copy.deepcopy(
+                        config["es_data"]
+                    )
+                    es_data = project_config[er][name]["es_data"]
+                    if "fields" in es_data:
+                        for field in es_data["fields"]:
+                            if field["type"] == "nested":
+                                field["base"] = replace(
+                                    project_config, er, name, field["base"]
                                 )
-                        elif field["type"] == "edtf_interval":
-                            field["start"] = replace(
-                                project_config, er, name, field["start"]
-                            )
-                            field["end"] = replace(
-                                project_config, er, name, field["end"]
-                            )
-                        else:
-                            field["selector_value"] = replace(
-                                project_config, er, name, field["selector_value"]
-                            )
-                        if "filter" in field:
-                            field["filter"] = replace(
-                                project_config, er, name, field["filter"]
-                            )
-                if "permissions" in es_data:
-                    for permission, groups in es_data["permissions"].items():
-                        es_data["permissions"][permission] = [
-                            replace_group(project_config, group) for group in groups
-                        ]
-            if "es_display" in config:
-                project_config[er][name]["es_display"] = copy.deepcopy(
-                    config["es_display"]
-                )
+                                for part in field["parts"].values():
+                                    part["selector_value"] = replace(
+                                        project_config, er, name, part["selector_value"]
+                                    )
+                            elif field["type"] == "edtf_interval":
+                                field["start"] = replace(
+                                    project_config, er, name, field["start"]
+                                )
+                                field["end"] = replace(
+                                    project_config, er, name, field["end"]
+                                )
+                            else:
+                                field["selector_value"] = replace(
+                                    project_config, er, name, field["selector_value"]
+                                )
+                            if "filter" in field:
+                                field["filter"] = replace(
+                                    project_config, er, name, field["filter"]
+                                )
+                    if "permissions" in es_data:
+                        for permission, groups in es_data["permissions"].items():
+                            es_data["permissions"][permission] = [
+                                replace_group(project_config, group) for group in groups
+                            ]
+                if "es_display" in config:
+                    project_config[er][name]["es_display"] = copy.deepcopy(
+                        config["es_display"]
+                    )
 
     # write out config
     for er in ["entity", "relation"]:
