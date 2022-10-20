@@ -17,54 +17,90 @@ RE_FIELD_CONVERSION = re.compile(
 )
 
 
+def find_replacement(
+    project_config: dict, er: str, current_ers: typing.List[str], to_replace: str
+) -> typing.List[str]:
+    path = [p.replace("$", "") for p in to_replace.split("->")]
+    results = []
+    new_paths = [[current_er, []] for current_er in current_ers]
+    for i, p in enumerate(path):
+        for (current_er, new_path) in new_paths:
+            # not last element => p = relation => travel
+            if i != len(path) - 1:
+                (direction, relation_name) = p.split("_", 1)
+                if direction == "r":
+                    current_ers = project_config["relations_base"][relation_name][
+                        "range"
+                    ]
+                else:
+                    current_ers = project_config["relations_base"][relation_name][
+                        "domain"
+                    ]
+                new_path.append(
+                    f'${direction}_{project_config["relations_base"][relation_name]["id"]}'
+                )
+                new_paths = [
+                    [current_er, new_path.copy()] for current_er in current_ers
+                ]
+                break
+            # last element => p = relation.r_prop or e_prop
+            # relation property
+            if "." in p:
+                (rel_type_id, r_prop) = p.split(".")
+                (direction, relation_name) = rel_type_id.split("_", 1)
+                new_path.append(
+                    f'${direction}_{project_config["relations_base"][relation_name]["id"]}'
+                )
+                results.append(
+                    f'{"->".join(new_path)}.${project_config["relation"][relation_name]["lookup"][r_prop]}'
+                )
+            # base -> relation
+            elif p.split("_")[0] in ["r", "ri"]:
+                (direction, relation_name) = p.split("_", 1)
+                new_path.append(
+                    f'${direction}_{project_config["relations_base"][relation_name]["id"]}'
+                )
+                results.append(f'{"->".join(new_path)}')
+            # entity display name
+            elif p == "display_name":
+                new_path.append("$display_name")
+                results.append(f'{"->".join(new_path)}')
+            # entity property
+            # Verify if the requested property exists for the current entity
+            elif p in project_config[er][current_er]["lookup"]:
+                new_path.append(f'${project_config[er][current_er]["lookup"][p]}')
+                results.append(f'{"->".join(new_path)}')
+            # If the property doesn't exist: don't add to results
+    return results
+
+
 def replace(project_config: dict, er: str, er_name: str, input: str) -> str:
-    result = input
+    replacements = {}
+    replacements_order = []
     for match in RE_FIELD_CONVERSION.finditer(input):
-        current_er = er_name
         if not match:
             continue
 
-        path = [p.replace("$", "") for p in match.group(0).split("->")]
-        new_path = []
-        for i, p in enumerate(path):
-            # last element => p = relation.r_prop or e_prop
-            if i == len(path) - 1:
-                # relation property
-                if "." in p:
-                    (rel_type_id, r_prop) = p.split(".")
-                    (direction, relation_name) = rel_type_id.split("_", 1)
-                    new_path.append(
-                        f'${direction}_{project_config["relations_base"][relation_name]["id"]}'
-                    )
-                    result = result.replace(
-                        match.group(0),
-                        f'{"->".join(new_path)}.${project_config["relation"][relation_name]["lookup"][r_prop]}',
-                        1,
-                    )
-                    break
-                # base -> relation
-                if p.split("_")[0] in ["r", "ri"]:
-                    (direction, relation_name) = p.split("_", 1)
-                    new_path.append(
-                        f'${direction}_{project_config["relations_base"][relation_name]["id"]}'
-                    )
-                # entity display name
-                elif p == "display_name":
-                    new_path.append("$display_name")
-                # entity property
-                else:
-                    new_path.append(f'${project_config[er][current_er]["lookup"][p]}')
-                result = result.replace(match.group(0), f'{"->".join(new_path)}', 1)
-                break
-            # not last element => p = relation => travel
-            (direction, relation_name) = p.split("_", 1)
-            if direction == "r":
-                current_er = project_config["relations_base"][relation_name]["range"]
-            else:
-                current_er = project_config["relations_base"][relation_name]["domain"]
-            new_path.append(
-                f'${direction}_{project_config["relations_base"][relation_name]["id"]}'
+        to_replace = match.group(0)
+        replacements_order.append(to_replace)
+
+        if to_replace not in replacements:
+            replacements[to_replace] = find_replacement(
+                project_config, er, [er_name], to_replace
             )
+    results = [input]
+    for to_replace in replacements_order:
+        new_results = []
+        for result in results:
+            new_results.extend(
+                [
+                    result.replace(to_replace, replacement, 1)
+                    for replacement in replacements[to_replace]
+                ]
+            )
+        results = new_results.copy()
+
+    return " $||$ ".join(results)
 
     return result
 

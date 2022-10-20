@@ -30,7 +30,6 @@ async def generate_config():
 
         for relation in relations:
             id = relations[relation]["id"]
-            # todo: relations with multiple domains / ranges?
             records = await db_base.fetch(
                 pool,
                 """
@@ -44,10 +43,8 @@ async def generate_config():
                     "relation_id": id,
                 },
             )
-            if len(records) == 1:
-                relations[relation]["domain"] = records[0]["system_name"]
-            else:
-                relations[relation]["domain"] = None
+            relations[relation]["domain"] = [r["system_name"] for r in records]
+
             records = await db_base.fetch(
                 pool,
                 """
@@ -61,10 +58,7 @@ async def generate_config():
                     "relation_id": id,
                 },
             )
-            if len(records) == 1:
-                relations[relation]["range"] = records[0]["system_name"]
-            else:
-                relations[relation]["range"] = None
+            relations[relation]["range"] = [r["system_name"] for r in records]
 
     with open(f"human_readable_config/relations.json", "w") as f:
         json.dump(dict(sorted(relations.items())), f, indent=4)
