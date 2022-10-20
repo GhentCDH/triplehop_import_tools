@@ -102,6 +102,13 @@ def replace(project_config: dict, er: str, er_name: str, input: str) -> str:
 
     return " $||$ ".join(results)
 
+
+def replace_system_name(project_config: dict, input: str) -> str:
+    result = input
+
+    for entity_system_name, entity_config in project_config["entities_base"].items():
+        result = result.replace(f"${entity_system_name}", f'${entity_config["id"]}')
+
     return result
 
 
@@ -115,6 +122,10 @@ def process() -> None:
         "entity": {},
         "relation": {},
     }
+    # Load entities config: ids might be needed when replacing
+    if os.path.exists(f"human_readable_config/entities.json"):
+        with open(f"human_readable_config/entities.json") as f:
+            project_config["entities_base"] = json.load(f)
     # Load relation config: ids, domains and ranges might be needed when replacing
     if os.path.exists(f"human_readable_config/relations.json"):
         with open(f"human_readable_config/relations.json") as f:
@@ -202,6 +213,10 @@ def process() -> None:
                                     field["field"] = replace(
                                         project_config, er, name, field["field"]
                                     )
+                                    if "show_condition" in field:
+                                        field["show_condition"] = replace_system_name(
+                                            project_config, field["show_condition"]
+                                        )
                 if "edit" in config:
                     project_config[er][name]["edit"] = copy.deepcopy(config["edit"])
                     edit = project_config[er][name]["edit"]
