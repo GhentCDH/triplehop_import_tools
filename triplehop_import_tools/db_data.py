@@ -115,7 +115,7 @@ def create_properties(
             db_key = db_props_lookup[key]
         if conf[0] == "int":
             value = row[conf[1]]
-            if value in [""]:
+            if value is None or value == "":
                 continue
             properties[db_key] = {
                 "type": "int",
@@ -124,7 +124,7 @@ def create_properties(
             continue
         if conf[0] == "string":
             value = row[conf[1]]
-            if value in [""]:
+            if value is None or value == "":
                 continue
             properties[db_key] = {
                 "type": "string",
@@ -133,7 +133,7 @@ def create_properties(
             continue
         if conf[0] == "edtf":
             value = row[conf[1]]
-            if value in [""]:
+            if value is None or value == "":
                 continue
             properties[db_key] = {
                 "type": "edtf",
@@ -142,7 +142,7 @@ def create_properties(
             continue
         if conf[0] == "[string]":
             value = row[conf[1]]
-            if value in [""]:
+            if value is None or value == "":
                 continue
             properties[db_key] = {
                 "type": "array",
@@ -151,7 +151,7 @@ def create_properties(
             continue
         if conf[0] == "geometry":
             value = row[conf[1]]
-            if value in [""]:
+            if value is None or value == "":
                 continue
             properties[db_key] = {
                 "type": "geometry",
