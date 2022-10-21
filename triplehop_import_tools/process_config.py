@@ -88,7 +88,7 @@ def replace(project_config: dict, er: str, er_name: str, input: str) -> str:
             replacements[to_replace] = find_replacement(
                 project_config, er, [er_name], to_replace
             )
-    results = [input]
+    results = input.split(" $||$ ")
     for to_replace in replacements_order:
         new_results = []
         for result in results:
@@ -100,7 +100,7 @@ def replace(project_config: dict, er: str, er_name: str, input: str) -> str:
             )
         results = new_results.copy()
 
-    return " $||$ ".join(results)
+    return " $||$ ".join(set(results))
 
 
 def replace_system_name(project_config: dict, input: str) -> str:
