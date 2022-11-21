@@ -12,48 +12,101 @@ RE_FIELD_CONVERSION = re.compile(
         # zero or one (inverse) relations; dot for relation property and arrow for entity property
         r"(?:[$]ri?_[a-z_]+(?:[.]|->)){0,1}"
         # one property (entity or relation)
-        r"[$](?:[a-z_]+)"
+        r"[.]?[$](?:[a-z_]+)"
     )
 )
 
 
+def get_current_entities(
+    project_config: dict,
+    er_name: str,
+    base: str = None,
+) -> typing.List[str]:
+    if base is None:
+        return [er_name]
+
+    result = []
+
+    for individual_base in base.split(" $||$ "):
+        last_relation = individual_base.split("->")[-1].replace("$", "")
+        (direction, relation_name) = last_relation.split("_", 1)
+        if direction == "r":
+            result.extend(project_config["relations_base"][relation_name]["range"])
+        else:
+            result.extend(project_config["relations_base"][relation_name]["domain"])
+
+    return result
+
+
+def get_current_relations(
+    er_name: str,
+    base: str = None,
+) -> typing.List[str]:
+    if base is None:
+        return [er_name]
+
+    result = []
+
+    for individual_base in base.split(" $||$ "):
+        result.append(individual_base.split("->")[-1].replace("$", ""))
+
+    return result
+
+
 def find_replacement(
-    project_config: dict, er: str, current_ers: typing.List[str], to_replace: str
+    project_config: dict,
+    er: str,
+    current_entities: typing.List[str],
+    current_relations: typing.List[str],
+    to_replace: str,
 ) -> typing.List[str]:
     path = [p.replace("$", "") for p in to_replace.split("->")]
     results = []
-    new_paths = [[current_er, []] for current_er in current_ers]
+    new_paths = [[current_entity, []] for current_entity in current_entities]
     for i, p in enumerate(path):
-        for (current_er, new_path) in new_paths:
+        for (current_entity, new_path) in new_paths:
             # not last element => p = relation => travel
             if i != len(path) - 1:
                 (direction, relation_name) = p.split("_", 1)
                 if direction == "r":
-                    current_ers = project_config["relations_base"][relation_name][
+                    current_entities = project_config["relations_base"][relation_name][
                         "range"
                     ]
                 else:
-                    current_ers = project_config["relations_base"][relation_name][
+                    current_entities = project_config["relations_base"][relation_name][
                         "domain"
                     ]
                 new_path.append(
                     f'${direction}_{project_config["relations_base"][relation_name]["id"]}'
                 )
                 new_paths = [
-                    [current_er, new_path.copy()] for current_er in current_ers
+                    [current_entity, new_path.copy()]
+                    for current_entity in current_entities
                 ]
                 break
             # last element => p = relation.r_prop or e_prop
             # relation property
             if "." in p:
-                (rel_type_id, r_prop) = p.split(".")
-                (direction, relation_name) = rel_type_id.split("_", 1)
-                new_path.append(
-                    f'${direction}_{project_config["relations_base"][relation_name]["id"]}'
-                )
-                results.append(
-                    f'{"->".join(new_path)}.${project_config["relation"][relation_name]["lookup"][r_prop]}'
-                )
+                if p[0] == ".":
+                    r_prop = p[1:]
+                    for current_relation in current_relations:
+                        relation_name = current_relation.split("_", 1)[1]
+                        if (
+                            r_prop
+                            in project_config["relation"][relation_name]["lookup"]
+                        ):
+                            results.append(
+                                f'.${project_config["relation"][relation_name]["lookup"][r_prop]}'
+                            )
+                else:
+                    (rel_type_id, r_prop) = p.split(".")
+                    (direction, relation_name) = rel_type_id.split("_", 1)
+                    new_path.append(
+                        f'${direction}_{project_config["relations_base"][relation_name]["id"]}'
+                    )
+                    results.append(
+                        f'{"->".join(new_path)}.${project_config["relation"][relation_name]["lookup"][r_prop]}'
+                    )
             # base -> relation
             elif p.split("_")[0] in ["r", "ri"]:
                 (direction, relation_name) = p.split("_", 1)
@@ -65,18 +118,26 @@ def find_replacement(
             elif p == "display_name":
                 new_path.append("$display_name")
                 results.append(f'{"->".join(new_path)}')
+            # entity type id
+            elif p == "entity_type_name":
+                new_path.append("$entity_type_name")
+                results.append(f'{"->".join(new_path)}')
             # entity property
             # Verify if the requested property exists for the current entity
-            elif p in project_config[er][current_er]["lookup"]:
-                new_path.append(f'${project_config[er][current_er]["lookup"][p]}')
+            elif p in project_config[er][current_entity]["lookup"]:
+                new_path.append(f'${project_config[er][current_entity]["lookup"][p]}')
                 results.append(f'{"->".join(new_path)}')
             # If the property doesn't exist: don't add to results
     return results
 
 
-def replace(project_config: dict, er: str, er_name: str, input: str) -> str:
+def replace(
+    project_config: dict, er: str, er_name: str, input: str, base: str = None
+) -> str:
     replacements = {}
     replacements_order = []
+    current_entities = get_current_entities(project_config, er_name, base)
+    current_relations = get_current_relations(er_name, base)
     for match in RE_FIELD_CONVERSION.finditer(input):
         if not match:
             continue
@@ -86,7 +147,7 @@ def replace(project_config: dict, er: str, er_name: str, input: str) -> str:
 
         if to_replace not in replacements:
             replacements[to_replace] = find_replacement(
-                project_config, er, [er_name], to_replace
+                project_config, er, current_entities, current_relations, to_replace
             )
     results = input.split(" $||$ ")
     for to_replace in replacements_order:
@@ -245,14 +306,26 @@ def process() -> None:
                     es_data = project_config[er][name]["es_data"]
                     if "fields" in es_data:
                         for field in es_data["fields"]:
-                            if field["type"] == "nested":
+                            if "base" in field:
+                                base = field["base"]
+                            else:
+                                base = None
+
+                            if (
+                                field["type"] == "nested"
+                                or field["type"] == "nested_multi_type"
+                            ):
+                                for key in field["parts"]:
+                                    field["parts"][key] = replace(
+                                        project_config,
+                                        er,
+                                        name,
+                                        field["parts"][key],
+                                        base,
+                                    )
                                 field["base"] = replace(
                                     project_config, er, name, field["base"]
                                 )
-                                for part in field["parts"].values():
-                                    part["selector_value"] = replace(
-                                        project_config, er, name, part["selector_value"]
-                                    )
                             elif field["type"] == "edtf_interval":
                                 field["start"] = replace(
                                     project_config, er, name, field["start"]
@@ -266,7 +339,7 @@ def process() -> None:
                                 )
                             if "filter" in field:
                                 field["filter"] = replace(
-                                    project_config, er, name, field["filter"]
+                                    project_config, er, name, field["filter"], base
                                 )
                     if "permissions" in es_data:
                         for permission, groups in es_data["permissions"].items():
