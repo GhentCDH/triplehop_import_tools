@@ -197,7 +197,7 @@ def process() -> None:
     if os.path.exists(f"human_readable_config/groups.json"):
         with open(f"human_readable_config/groups.json") as f:
             project_config["groups_base"] = json.load(f)
-    # first iteration: detail, source, data
+    # first iteration: detail, source, data, style
     for er in ["entity", "relation"]:
         for fn in os.listdir(f"human_readable_config/{er}"):
             name = fn.split(".")[0]
@@ -245,6 +245,8 @@ def process() -> None:
                         project_config[er][name]["data"]["permissions"][permission] = [
                             replace_group(project_config, group) for group in groups
                         ]
+            if "style" in config:
+                project_config[er][name]["style"] = config["style"]
 
     if "relations_base" in project_config:
         # second iteraton: display, edit
@@ -366,6 +368,7 @@ def process() -> None:
                     "edit",
                     "es_data",
                     "es_display",
+                    "style",
                 ]:
                     if conf in project_config[er][name]:
                         config[conf] = project_config[er][name][conf]
