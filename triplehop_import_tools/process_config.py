@@ -316,6 +316,7 @@ def process() -> None:
                             if (
                                 field["type"] == "nested"
                                 or field["type"] == "nested_multi_type"
+                                or field["type"] == "nested_flatten"
                             ):
                                 for key in field["parts"]:
                                     field["parts"][key] = replace(
