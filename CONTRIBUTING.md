@@ -9,7 +9,9 @@ Documentation is currently severely lacking. Please contact <https://github.ugen
 ### Install Poetry
 
     ```sh
-    curl -sSL https://raw.githubusercontent.com/python-poetry/poetry/master/get-poetry.py | python -
+    sudo apt-get install python3-distutils
+    curl -sSL https://install.python-poetry.org | python3 -
+    export PATH="/home/vagrant/.local/bin:$PATH"
     ```
 
 ### Download code
