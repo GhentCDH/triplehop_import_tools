@@ -280,6 +280,13 @@ def process() -> None:
                                         field["show_condition"] = replace_system_name(
                                             project_config, field["show_condition"]
                                         )
+                                    if "search_value" in field:
+                                        field["search_value"] = replace(
+                                            project_config,
+                                            er,
+                                            name,
+                                            field["search_value"],
+                                        )
                 if "edit" in config:
                     project_config[er][name]["edit"] = copy.deepcopy(config["edit"])
                     edit = project_config[er][name]["edit"]
