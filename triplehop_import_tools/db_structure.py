@@ -557,3 +557,47 @@ async def create_project_graph(pool: asyncpg.pool.Pool, project_name: str):
             CREATE INDEX IF NOT EXISTS "revision_{project_id}_relations__end_entity_id" ON revision."{project_id}_relations" (end_entity_id);
         """,
     )
+    await db_base.execute(
+        pool,
+        f"""
+            CREATE TABLE IF NOT EXISTS revision."{project_id}_relation_sources" (
+                id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+                revision_id INTEGER NOT NULL,
+                user_id UUID NOT NULL
+                    REFERENCES app.user (id)
+                    ON UPDATE RESTRICT ON DELETE RESTRICT,
+                source_relation_type_revision_id UUID NOT NULL
+                    REFERENCES app.relation_revision (id)
+                    ON UPDATE RESTRICT ON DELETE RESTRICT,
+                source_relation_type_id UUID NOT NULL
+                    REFERENCES app.relation (id)
+                    ON UPDATE RESTRICT ON DELETE SET NULL,
+                source_relation_id INT NOT NULL,
+                start_relation_type_revision_id UUID NOT NULL
+                    REFERENCES app.relation_revision (id)
+                    ON UPDATE RESTRICT ON DELETE RESTRICT,
+                start_relation_type_id UUID NOT NULL
+                    REFERENCES app.relation (id)
+                    ON UPDATE RESTRICT ON DELETE SET NULL,
+                start_relation_id INT NOT NULL,
+                end_entity_type_revision_id UUID NOT NULL
+                    REFERENCES app.entity_revision (id)
+                    ON UPDATE RESTRICT ON DELETE RESTRICT,
+                end_entity_type_id UUID NOT NULL
+                    REFERENCES app.entity (id)
+                    ON UPDATE RESTRICT ON DELETE SET NULL,
+                end_entity_id INT NOT NULL,
+                old_value JSON,
+                new_value JSON,
+                created TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now()
+            );
+        """,
+    )
+    await db_base.execute(
+        pool,
+        f"""
+            CREATE INDEX IF NOT EXISTS "revision_{project_id}_relations__source_relation_id" ON revision."{project_id}_relation_sources" (source_relation_id);
+            CREATE INDEX IF NOT EXISTS "revision_{project_id}_relations__start_relation_id" ON revision."{project_id}_relation_sources" (start_relation_id);
+            CREATE INDEX IF NOT EXISTS "revision_{project_id}_relations__end_entity_id" ON revision."{project_id}_relations" (end_entity_id);
+        """,
+    )
