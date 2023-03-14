@@ -115,6 +115,7 @@ async def create_entity_config(
     system_name: str,
     display_name: str,
     config: typing.Dict,
+    reset_count: bool,
 ):
     await db_base.execute(
         pool,
@@ -150,16 +151,27 @@ async def create_entity_config(
             "system_name": system_name,
         },
     )
-    await db_base.execute(
-        pool,
+    query = \
         """
             INSERT INTO app.entity_count (id)
             VALUES (
                 (SELECT entity.id FROM app.entity WHERE system_name = :system_name)
             )
-            ON CONFLICT (id) DO UPDATE
-            SET current_id = 0;
-        """,
+        """
+    if reset_count:
+        query += \
+            """
+                ON CONFLICT (id) DO UPDATE
+                SET current_id = 0;
+            """
+    else:
+        query += \
+            """
+                ON CONFLICT (id) DO NOTHING;
+            """
+    await db_base.execute(
+        pool,
+        query,
         {
             "system_name": system_name,
         },
@@ -175,6 +187,7 @@ async def create_relation_config(
     config: typing.Dict,
     domains: typing.List,
     ranges: typing.List,
+    reset_count: bool,
 ):
     await db_base.execute(
         pool,
@@ -315,8 +328,7 @@ async def create_relation_config(
             "relation_name": system_name,
         },
     )
-    await db_base.execute(
-        pool,
+    query = \
         """
             INSERT INTO app.relation_count (id)
             VALUES (
@@ -331,9 +343,21 @@ async def create_relation_config(
                     AND system_name = :relation_name
                 )
             )
-            ON CONFLICT (id) DO UPDATE
-            SET current_id = 0;
-        """,
+        """
+    if reset_count:
+        query += \
+            """
+                ON CONFLICT (id) DO UPDATE
+                SET current_id = 0;
+            """
+    else:
+        query += \
+            """
+                ON CONFLICT (id) DO NOTHING;
+            """
+    await db_base.execute(
+        pool,
+        query,
         {
             "project_name": project_name,
             "relation_name": system_name,
