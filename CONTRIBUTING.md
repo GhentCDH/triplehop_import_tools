@@ -47,7 +47,7 @@ The script can then be used as follows:
 
 ### Add User data
 
-The user data can be imported using the `db_user_data.py` python script. A system user and anonymous user are created automatically, as well as an anonymous and global_admin group and all required permissions. The anonymous user is automatically linked to the anonymous group. Make sure a `config.py` file exists at the same level as the `triplehop_import_tools` with a `DATABASE`, `USERS` and a `USERS_GROUPS` variable:
+The user data can be imported using the `db_user_data.py` python script. A system user and anonymous user are created automatically, as well as an anonymous and global_admin group and all required permissions. The anonymous user is automatically linked to the anonymous group. Make sure a `config.py` file exists at the same level as the `triplehop_import_tools` with a `DATABASE`, `USERS`, `GROUPS` and a `USERS_GROUPS` variable:
 
     ```py
     DATABASE = {
@@ -66,10 +66,20 @@ The user data can be imported using the `db_user_data.py` python script. A syste
         },
     ]
 
+    GROUPS = [
+        {
+            "project_name": "",
+            "system_name": "",
+            "display_name": "",
+            "description": "",
+        },
+    ]
+
     USERS_GROUPS = [
         {
             "username": "",
-            "group_name": "",
+            "group_project_name": "",
+            "group_system_name": "",
         },
     ]
     ```
