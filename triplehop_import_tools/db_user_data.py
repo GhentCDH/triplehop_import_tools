@@ -60,58 +60,6 @@ async def create_user_data():
     await db_base.executemany(
         pool,
         """
-            INSERT INTO app.permission (system_name, display_name, description)
-            VALUES (:system_name, :display_name, :description)
-            ON CONFLICT (system_name) DO UPDATE
-            SET display_name = EXCLUDED.display_name, description = EXCLUDED.description;
-        """,
-        [
-            {
-                "system_name": "__all__",
-                "display_name": "All permissions",
-                "description": "Users in with this permission have all permissions",
-            },
-            {
-                "system_name": "es_index",
-                "display_name": "Index data in Elasticsearch",
-                "description": "Users in with this permission can run batch jobs to index in elasticsearch",
-            },
-            {
-                "system_name": "get",
-                "display_name": "View data",
-                "description": "Users with this permission can view data",
-            },
-            {
-                "system_name": "post",
-                "display_name": "Create data",
-                "description": "Users with this permission can create data",
-            },
-            {
-                "system_name": "put",
-                "display_name": "Update data",
-                "description": "Users with this permission can update data",
-            },
-            {
-                "system_name": "delete",
-                "display_name": "Delete data",
-                "description": "Users with this permission can delete data",
-            },
-            {
-                "system_name": "view",
-                "display_name": "View fields and groups of fields",
-                "description": "Users with this permission can view fields and groups of fields",
-            },
-            {
-                "system_name": "edit",
-                "display_name": "Edit fields",
-                "description": "Users with this permission can edit fields",
-            },
-        ],
-    )
-
-    await db_base.executemany(
-        pool,
-        """
             INSERT INTO app.users_groups (user_id, group_id)
             VALUES (
                 (SELECT "user".id FROM app.user WHERE "user".username = :username),
