@@ -115,14 +115,15 @@ async def create_user_data():
             INSERT INTO app.users_groups (user_id, group_id)
             VALUES (
                 (SELECT "user".id FROM app.user WHERE "user".username = :username),
-                (SELECT "group".id FROM app.group WHERE "group".system_name = :group_name)
+                (SELECT "group".id FROM app.group WHERE "group".system_name = :group_system_name AND "group".project_id = (SELECT project.id FROM app.project WHERE project.system_name = :group_project_name))
             )
             ON CONFLICT (user_id, group_id) DO NOTHING;
         """,
         [
             {
                 "username": "anonymous",
-                "group_name": "anonymous",
+                "group_system_name": "anonymous",
+                "group_project_name": "__all__",
             },
             *config.USERS_GROUPS,
         ],
