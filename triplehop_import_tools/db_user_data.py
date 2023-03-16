@@ -1,9 +1,9 @@
 import asyncio
 
 import asyncpg
-import config
-
 import db_base
+
+import config
 
 
 async def create_user_data():
