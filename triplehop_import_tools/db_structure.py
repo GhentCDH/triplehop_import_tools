@@ -115,7 +115,7 @@ async def create_entity_config(
     system_name: str,
     display_name: str,
     config: typing.Dict,
-    reset_count: bool,
+    reset_count: bool = True,
 ):
     await db_base.execute(
         pool,
@@ -187,7 +187,7 @@ async def create_relation_config(
     config: typing.Dict,
     domains: typing.List,
     ranges: typing.List,
-    reset_count: bool,
+    reset_count: bool = True,
 ):
     await db_base.execute(
         pool,
