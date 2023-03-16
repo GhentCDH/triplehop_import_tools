@@ -32,7 +32,7 @@ async def create_user_data():
         """
             INSERT INTO app.group (project_id, system_name, display_name, description)
             VALUES (
-                (SELECT project.id FROM app.project WHERE project.system_name = '__all__'),
+                (SELECT project.id FROM app.project WHERE project.system_name = :project_name),
                 :system_name,
                 :display_name,
                 :description
@@ -42,15 +42,18 @@ async def create_user_data():
         """,
         [
             {
+                "project_name": "__all__",
                 "system_name": "global_admin",
                 "display_name": "Global administrator",
                 "description": "Users in this group have all permissions",
             },
             {
+                "project_name": "__all__",
                 "system_name": "anonymous",
                 "display_name": "Not authenticated",
                 "description": "Users in this group are not authenticated",
             },
+            *config.GROUPS,
         ],
     )
 
