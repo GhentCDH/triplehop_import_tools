@@ -170,7 +170,21 @@ python triplehop_import_tools/triplehop_import_tools/generate_entity_config.py
 
 Human readable config files can be converted to machine readable ones using the `process_config.py` python script.
 
-The human readable config files should be contained in a folder named `human_readable_config`. The script can then be used as follows:
+The human readable config files should be contained in a folder named `human_readable_config`, in subfolders named `entity` and `relation`.
+
+```sh
+
+├── human_readable_config
+│   ├── entity
+│   │   ├── *.json
+│   ├── relation
+│   │   ├── *.json
+│   ├── entities.json  # created by generate_entity_config.py
+│   ├── gropus.json    # created by generate_group_config.py
+│   ├── relations.json # created by generate_relation_config.py
+```
+
+The script can then be used as follows to convert the human readable configs in the `human_readable_config` folder to machine usable configs in the `config` folder:
 
 ```sh
 python triplehop_import_tools/triplehop_import_tools/process_config.py
