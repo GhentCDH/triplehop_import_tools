@@ -1,36 +1,8 @@
 # TripleHop import tools
 
-TripleHop is a platform that aims to facilitate collaborative research data creation and publication.
+[TripleHop](https://github.com/GhentCDH/triplehop) is a platform that aims to facilitate collaborative research data creation and publication.
 
-![TripleHop screenshot](triplehop_screenshot.png)
-
-The TripleHop import tools consists of Python scripts to import csv files into a database that can then be used by a [TripleHop back-end](https://github.com/GhentCDH/triplehop_backend).
-
-## Work in progress
-
-The TripleHop platform is still a work in progress.
-
-Currently implemented:
-
-* Data model configuration using json files
-* Basic exploration of data
-* A part of the editing interface
-* Data import using import scripts
-* Limited GraphQL API
-
-TO DO:
-
-* Documentation
-* Testing
-* Data model configuration with a web interface
-* Editing interface
-* Data import using a web interface
-* LOD presentation
-* LOD mapping
-* HDT export
-* Plug-in system in the back-end and front-end, re-evaluation of the data model configuration format
-* Graph visualizations
-* Visual query interface
+The TripleHop import tools consists of Python scripts to import json config and csv data files into a database that can then be used by Triplehop.
 
 ## Contributing
 
