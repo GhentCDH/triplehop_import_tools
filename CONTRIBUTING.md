@@ -6,21 +6,15 @@ Documentation is currently severely lacking. Please contact <https://github.com/
 
 ## Development set-up (based on a Debian Virtual Machine)
 
-### Install Poetry
+### Adding as a dependency
+
+The TripleHop Import Tools will most likely be used in a specific project (e.g., [TripleHop scripts for the Cinema Belgica project](https://github.com/GhentCDH/cinema_belgica_triplehop_scripts)). After setting up such a project with Poetry, the Import Tools can be installed as a dependency using
 
 ```sh
-sudo apt-get install python3-distutils
-curl -sSL https://install.python-poetry.org | python3 -
-export PATH="/home/vagrant/.local/bin:$PATH"
+poetry add git+https://github.com/GhentCDH/triplehop_import_tools
 ```
 
-### Download code
-
-```sh
-git clone git@github.com:GhentCDH/triplehop_import_tools.git
-```
-
-### Install Python dependencies (in code folder)
+### Install Python dependencies (in base folder)
 
 ```sh
 poetry install
