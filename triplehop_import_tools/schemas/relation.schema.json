@@ -9,7 +9,6 @@
         "data",
         "edit"
     ],
-    "unevaluatedProperties": false,
     "properties": {
         "data": {
             "$ref": "data.schema.json"

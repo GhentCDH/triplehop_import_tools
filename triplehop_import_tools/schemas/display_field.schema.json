@@ -36,6 +36,10 @@
         "label": {
             "type": "string",
             "description": "Definition of the label to displayed for this field, should it be different from the label defined for a single property."
+        },
+        "show_condition": {
+            "type": "string",
+            "description": "Definition of a condition that defines whether the field is displayed or not."
         }
     },
     "allOf": [
