@@ -2,6 +2,7 @@
     "$id": "edit_field.schema.json",
     "$schema": "https://json-schema.org/draft/2020-12/schema",
     "title": "Edit field",
+    "unevaluatedProperties": false,
     "type": "object",
     "required": [
         "field"

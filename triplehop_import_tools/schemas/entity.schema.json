@@ -3,13 +3,13 @@
     "$schema": "https://json-schema.org/draft/2020-12/schema",
     "title": "Entity",
     "description": "Entity configuration for the TripleHop platform.",
+    "unevaluatedProperties": false,
     "type": "object",
     "required": [
         "data",
         "display",
         "es_data"
     ],
-    "unevaluatedProperties": false,
     "properties": {
         "detail": {
             "type": "boolean",

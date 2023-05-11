@@ -2,6 +2,7 @@
     "$id": "data.schema.json",
     "$schema": "https://json-schema.org/draft/2020-12/schema",
     "title": "Permission",
+    "unevaluatedProperties": false,
     "type": "object",
     "description": "Definition of the data to be saved in the database and related permissions.",
     "required": [

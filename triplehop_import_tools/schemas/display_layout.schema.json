@@ -2,6 +2,7 @@
     "$id": "display_layout.schema.json",
     "$schema": "https://json-schema.org/draft/2020-12/schema",
     "title": "Display layout",
+    "unevaluatedProperties": false,
     "type": "array",
     "description": "A layout can consist of one or multiple panels to be displayed.",
     "minItems": 1,
