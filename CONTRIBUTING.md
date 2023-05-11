@@ -188,6 +188,13 @@ The human readable config files should comply to the schemas defined in the `sch
 poetry run python triplehop_import_tools/triplehop_import_tools/validate_config.py
 ```
 
+Human readable documentation for the schemas can be found in the `rendered_schemas` folder. This documentation can be generated with following commands:
+
+```sh
+poetry run generate-schema-doc triplehop_import_tools/triplehop_import_tools/schemas/entity.schema.json triplehop_import_tools/triplehop_import_tools/rendered_schemas
+poetry run generate-schema-doc triplehop_import_tools/triplehop_import_tools/schemas/relation.schema.json triplehop_import_tools/triplehop_import_tools/rendered_schemas
+```
+
 The `process_config.py` script can then be used as follows to convert the human readable configs in the `human_readable_config` folder to machine usable configs in the `config` folder:
 
 ```sh
