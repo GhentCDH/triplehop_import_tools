@@ -1,0 +1,59 @@
+{
+    "$id": "display_field.schema.json",
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "title": "Display field",
+    "type": "object",
+    "required": [
+        "field"
+    ],
+    "properties": {
+        "field": {
+            "type": "string",
+            "description": "Definition of the data to be displayed. One or more relation or entity properties can be displayed. Each property to be displayed can consist of a relation path with a relation property or entity property identifier at the end."
+        },
+        "type": {
+            "type": "string",
+            "description": "Definition of how the selected data should be displayed.",
+            "enum": [
+                "edtf",
+                "edtf_year",
+                "iiif_manifest",
+                "filmmagie",
+                "geometry",
+                "link",
+                "list",
+                "online_identifier",
+                "table",
+                "text_flatten",
+                "vooruit_image",
+                "wikidata_images"
+            ]
+        },
+        "base_url": {
+            "type": "string"
+        },
+        "label": {
+            "type": "string",
+            "description": "Definition of the label to displayed for this field, should it be different from the label defined for a single property."
+        }
+    },
+    "allOf": [
+        {
+            "if": {
+                "properties": {
+                    "type": {
+                        "const": "online_identifier"
+                    }
+                },
+                "required": [
+                    "type"
+                ]
+            },
+            "then": {
+                "required": [
+                    "base_url"
+                ]
+            }
+        }
+    ]
+}

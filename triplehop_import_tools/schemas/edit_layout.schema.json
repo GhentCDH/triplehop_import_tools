@@ -1,0 +1,28 @@
+{
+    "$id": "edit_layout.schema.json",
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "title": "Edit Layout",
+    "type": "array",
+    "description": "A layout can consist of one or multiple panels to be displayed.",
+    "minItems": 1,
+    "items": {
+        "type": "object",
+        "description": "A panel can consist of one or multiple edit fields.",
+        "required": [
+            "fields"
+        ],
+        "properties": {
+            "label": {
+                "type": "string",
+                "description": "An optional label for the panel to be displayed."
+            },
+            "fields": {
+                "type": "array",
+                "minItems": 1,
+                "items": {
+                    "$ref": "edit_field.schema.json"
+                }
+            }
+        }
+    }
+}

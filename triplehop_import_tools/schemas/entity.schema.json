@@ -1,0 +1,327 @@
+{
+    "$id": "entity.schema.json",
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "title": "Entity",
+    "description": "Entity configuration for the TripleHop platform.",
+    "type": "object",
+    "required": [
+        "data",
+        "display",
+        "es_data"
+    ],
+    "unevaluatedProperties": false,
+    "properties": {
+        "detail": {
+            "type": "boolean",
+            "description": "Indicates whether detail pages are available for this entity type.",
+            "default": "false"
+        },
+        "source": {
+            "type": "boolean",
+            "description": "Indicates whether this entity type can be used as a source.",
+            "default": "false"
+        },
+        "data": {
+            "$ref": "data.schema.json"
+        },
+        "display": {
+            "type": "object",
+            "description": "Definition of how entities of this entity type should be displayed.",
+            "required": [
+                "title"
+            ],
+            "properties": {
+                "title": {
+                    "type": "string",
+                    "description": "Definition of the title to be used for this entity type."
+                },
+                "layout": {
+                    "$ref": "display_layout.schema.json"
+                }
+            }
+        },
+        "edit": {
+            "type": "object",
+            "description": "Definition of the editing interface.",
+            "properties": {
+                "layout": {
+                    "$ref": "edit_layout.schema.json"
+                }
+            }
+        },
+        "es_data": {
+            "type": "object",
+            "description": "Definition of how the data should be indexed in the search engine and related permissions.",
+            "required": [
+                "permissions"
+            ],
+            "properties": {
+                "fields": {
+                    "type": "array",
+                    "minItems": 1,
+                    "items": {
+                        "type": "object",
+                        "required": [
+                            "system_name",
+                            "display_name",
+                            "type"
+                        ],
+                        "properties": {
+                            "system_name": {
+                                "type": "string",
+                                "description": "Name used to use this field (or its value) in other places.",
+                                "pattern": "^[a-z_]+$"
+                            },
+                            "display_name": {
+                                "type": "string",
+                                "description": "Name used to as a label for this field in the user interface."
+                            },
+                            "type": {
+                                "type": "string",
+                                "description": "ES data type.",
+                                "enum": [
+                                    "edtf",
+                                    "edtf_interval",
+                                    "nested",
+                                    "nested_flatten",
+                                    "nested_multi_type",
+                                    "text",
+                                    "[text]",
+                                    "uncertain_centuries"
+                                ]
+                            },
+                            "selector_value": {
+                                "type": "string",
+                                "description": "Definition of the data to be indexed. One or more relation or entity properties can be displayed. Each property to be displayed can consist of a relation path with a relation property or entity property identifier at the end."
+                            },
+                            "start": {
+                                "type": "string",
+                                "description": "Definition of the data to be indexed for the start of an edtf interval."
+                            },
+                            "end": {
+                                "type": "string",
+                                "description": "Definition of the data to be indexed for the end of an edtf interval."
+                            },
+                            "base": {
+                                "type": "string",
+                                "description": "Definition of the start entity for the indexing of nested objects."
+                            },
+                            "parts": {
+                                "type": "object",
+                                "description": "Definition of the data to be indexed for a nested object.",
+                                "required": [
+                                    "entity_type_name",
+                                    "id",
+                                    "selector_value"
+                                ],
+                                "properties": {
+                                    "entity_type_name": {
+                                        "type": "string",
+                                        "description": "Definition relative to the base path of the data to be indexed as entity_type_name in the nested object."
+                                    },
+                                    "id": {
+                                        "type": "string",
+                                        "description": "Definition relative to the base path of the data to be indexed as id in the nested object."
+                                    },
+                                    "selector_value": {
+                                        "type": "string",
+                                        "description": "Definition relative to the base path of the data to be indexed as value in the nested object."
+                                    }
+                                }
+                            },
+                            "filter": {
+                                "type": "string",
+                                "description": "Definition of an optional filter to be applied when indexing."
+                            }
+                        },
+                        "allOf": [
+                            {
+                                "if": {
+                                    "properties": {
+                                        "type": {
+                                            "enum": [
+                                                "edtf",
+                                                "text",
+                                                "[text]"
+                                            ]
+                                        }
+                                    }
+                                },
+                                "then": {
+                                    "required": [
+                                        "selector_value"
+                                    ]
+                                }
+                            },
+                            {
+                                "if": {
+                                    "properties": {
+                                        "type": {
+                                            "const": "edtf_interval"
+                                        }
+                                    }
+                                },
+                                "then": {
+                                    "required": [
+                                        "start",
+                                        "end"
+                                    ]
+                                }
+                            },
+                            {
+                                "if": {
+                                    "properties": {
+                                        "type": {
+                                            "enum": [
+                                                "nested",
+                                                "nested_flatten",
+                                                "nested_multi_type"
+                                            ]
+                                        }
+                                    }
+                                },
+                                "then": {
+                                    "required": [
+                                        "base",
+                                        "parts"
+                                    ]
+                                }
+                            }
+                        ]
+                    }
+                },
+                "permissions": {
+                    "$ref": "elastiscearch_permissions.schema.json"
+                }
+            }
+        },
+        "es_display": {
+            "type": "object",
+            "required": [
+                "title",
+                "filters",
+                "columns"
+            ],
+            "properties": {
+                "title": {
+                    "type": "string",
+                    "description": "Definition of the title to be displayed on the search page for an entity type."
+                },
+                "filters": {
+                    "type": "array",
+                    "description": "Definition of groups of filters to be displayed on the search page for an entity type.",
+                    "minItems": 1,
+                    "items": {
+                        "type": "object",
+                        "required": [
+                            "filters"
+                        ],
+                        "properties": {
+                            "filters": {
+                                "type": "array",
+                                "description": "Definition of filters in a filter group.",
+                                "minItems": 1,
+                                "items": {
+                                    "type": "object",
+                                    "required": [
+                                        "filter"
+                                    ],
+                                    "properties": {
+                                        "filter": {
+                                            "type": "string",
+                                            "description": "Definition of the es_data field to use as filter.",
+                                            "pattern": "^[$][a-z_]+$"
+                                        },
+                                        "type": {
+                                            "type": "string",
+                                            "description": "Definition of the filter type to display.",
+                                            "enum": [
+                                                "autocomplete",
+                                                "dropdown",
+                                                "histogram_slider",
+                                                "nested",
+                                                "nested_present"
+                                            ]
+                                        },
+                                        "interval": {
+                                            "type": "number",
+                                            "description": "Definition of the interval used in a histogram_slider."
+                                        }
+                                    },
+                                    "allOf": [
+                                        {
+                                            "if": {
+                                                "properties": {
+                                                    "type": {
+                                                        "const": "histogram_slider"
+                                                    }
+                                                },
+                                                "required": [
+                                                    "type"
+                                                ]
+                                            },
+                                            "then": {
+                                                "required": [
+                                                    "interval"
+                                                ]
+                                            }
+                                        }
+                                    ]
+                                }
+                            }
+                        }
+                    }
+                },
+                "columns": {
+                    "type": "array",
+                    "description": "Definition of columns to be displayed on the search page for an entity type.",
+                    "minItems": 1,
+                    "items": {
+                        "type": "object",
+                        "required": [
+                            "column",
+                            "sortable"
+                        ],
+                        "properties": {
+                            "column": {
+                                "type": "string",
+                                "description": "Definition of the es_data field to use as result.",
+                                "pattern": "^[$][a-z_]+$"
+                            },
+                            "sortable": {
+                                "type": "boolean",
+                                "description": "Indicates whether it should be possible to sort on this column."
+                            },
+                            "main_link": {
+                                "type": "boolean",
+                                "description": "Indicates whether this column should be used to display a link to the related entity. If no column is indicated as main_link, an additional column will be added to display a link to the related entity."
+                            },
+                            "link": {
+                                "type": "boolean",
+                                "description": "Indicates whether this column should be used to display a link to an entity represented by a nested field."
+                            },
+                            "searchable": {
+                                "type": "boolean",
+                                "description": "Indicates whether a link to filter on the specific value displayed in this cell should be added to the cell."
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "style": {
+            "type": "object",
+            "description": "Definition of additional styles to be applied on certain pages.",
+            "properties": {
+                "search": {
+                    "type": "array",
+                    "description": "Definition of additional styles to be applied on search pages.",
+                    "minItems": 1,
+                    "items": {
+                        "type": "string"
+                    }
+                }
+            }
+        }
+    }
+}

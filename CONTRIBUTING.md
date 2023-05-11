@@ -36,7 +36,7 @@ DATABASE = {
 The script can then be used as follows:
 
 ```sh
-python triplehop_import_tools/triplehop_import_tools/db_app.py
+poetry run python triplehop_import_tools/triplehop_import_tools/db_app.py
 ```
 
 ### Add User data
@@ -81,7 +81,7 @@ USERS_GROUPS = [
 The script can then be used as follows:
 
 ```sh
-python triplehop_import_tools/triplehop_import_tools/db_user_data.py
+poetry run python triplehop_import_tools/triplehop_import_tools/db_user_data.py
 ```
 
 ### Add db structure for revisions
@@ -100,7 +100,7 @@ DATABASE = {
 The script can then be used as follows:
 
 ```sh
-python triplehop_import_tools/triplehop_import_tools/db_revision.py
+poetry run python triplehop_import_tools/triplehop_import_tools/db_revision.py
 ```
 
 ### Generate group config
@@ -121,7 +121,7 @@ DATABASE = {
 The script can then be used as follows:
 
 ```sh
-python triplehop_import_tools/triplehop_import_tools/generate_group_config.py
+poetry run python triplehop_import_tools/triplehop_import_tools/generate_group_config.py
 ```
 
 ### Generate relation config
@@ -142,7 +142,7 @@ DATABASE = {
 The script can then be used as follows:
 
 ```sh
-python triplehop_import_tools/triplehop_import_tools/generate_relation_config.py
+poetry run python triplehop_import_tools/triplehop_import_tools/generate_relation_config.py
 ```
 
 ### Generate entity config
@@ -163,14 +163,12 @@ DATABASE = {
 The script can then be used as follows:
 
 ```sh
-python triplehop_import_tools/triplehop_import_tools/generate_entity_config.py
+poetry run python triplehop_import_tools/triplehop_import_tools/generate_entity_config.py
 ```
 
-### Process config
+### Config files
 
-Human readable config files can be converted to machine readable ones using the `process_config.py` python script.
-
-The human readable config files should be contained in a folder named `human_readable_config`, in subfolders named `entity` and `relation`.
+Human readable config files should be contained in a folder named `human_readable_config`, in subfolders named `entity` and `relation`.
 
 ```sh
 
@@ -184,8 +182,14 @@ The human readable config files should be contained in a folder named `human_rea
 │   ├── relations.json # created by generate_relation_config.py
 ```
 
-The script can then be used as follows to convert the human readable configs in the `human_readable_config` folder to machine usable configs in the `config` folder:
+The human readable config files should comply to the schemas defined in the `schemas` folder. The compliance can be tested with the `validate_config.py` script:
 
 ```sh
-python triplehop_import_tools/triplehop_import_tools/process_config.py
+poetry run python triplehop_import_tools/triplehop_import_tools/validate_config.py
+```
+
+The `process_config.py` script can then be used as follows to convert the human readable configs in the `human_readable_config` folder to machine usable configs in the `config` folder:
+
+```sh
+poetry run python triplehop_import_tools/triplehop_import_tools/process_config.py
 ```

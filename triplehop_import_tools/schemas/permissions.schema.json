@@ -1,0 +1,26 @@
+{
+    "$id": "permissions.schema.json",
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "title": "Permissions",
+    "type": "object",
+    "required": [
+        "get",
+        "post",
+        "put",
+        "delete"
+    ],
+    "properties": {
+        "get": {
+            "$ref": "permission.schema.json"
+        },
+        "post": {
+            "$ref": "permission.schema.json"
+        },
+        "put": {
+            "$ref": "permission.schema.json"
+        },
+        "delete": {
+            "$ref": "permission.schema.json"
+        }
+    }
+}

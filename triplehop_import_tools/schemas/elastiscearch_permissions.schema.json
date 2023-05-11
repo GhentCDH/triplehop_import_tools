@@ -1,0 +1,18 @@
+{
+    "$id": "elasticsearch_permissions.schema.json",
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "title": "Elasticsearch permissions",
+    "type": "object",
+    "required": [
+        "view",
+        "index"
+    ],
+    "properties": {
+        "view": {
+            "$ref": "permission.schema.json"
+        },
+        "index": {
+            "$ref": "permission.schema.json"
+        }
+    }
+}

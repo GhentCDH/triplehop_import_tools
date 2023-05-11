@@ -1,0 +1,63 @@
+{
+    "$id": "data.schema.json",
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "title": "Permission",
+    "type": "object",
+    "description": "Definition of the data to be saved in the database and related permissions.",
+    "required": [
+        "permissions"
+    ],
+    "properties": {
+        "fields": {
+            "type": "array",
+            "minItems": 1,
+            "items": {
+                "type": "object",
+                "description": "Definition of a single data property to be saved in the database and related permissions.",
+                "required": [
+                    "system_name",
+                    "display_name",
+                    "type",
+                    "permissions"
+                ],
+                "properties": {
+                    "system_name": {
+                        "type": "string",
+                        "description": "Name used to use this field (or its value) in other places.",
+                        "pattern": "^[a-z_]+$"
+                    },
+                    "display_name": {
+                        "type": "string",
+                        "description": "Name used to as a label for this field in the user interface."
+                    },
+                    "type": {
+                        "type": "string",
+                        "description": "Data type.",
+                        "enum": [
+                            "Int",
+                            "Geometry",
+                            "String",
+                            "[String]"
+                        ]
+                    },
+                    "validators": {
+                        "type": "array",
+                        "minItems": 1,
+                        "description": "Validators to be used to validate values for this property when data is added or edited.",
+                        "items": {
+                            "$ref": "validator.schema.json"
+                        }
+                    },
+                    "permissions": {
+                        "$ref": "permissions.schema.json",
+                        "description": "Permissions to view, add, edit or delete this specific property."
+                    }
+                }
+            }
+        },
+        "permissions": {
+            "$ref": "permissions.schema.json",
+            "description": "Permissions to view, add, edit or delete entities of this entity type as a whole."
+        }
+    }
+}

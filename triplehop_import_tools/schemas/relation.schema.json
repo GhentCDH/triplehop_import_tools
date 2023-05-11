@@ -1,0 +1,53 @@
+{
+    "$id": "relation.schema.json",
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "title": "Relation",
+    "description": "Relation configuration for the TripleHop platform.",
+    "type": "object",
+    "required": [
+        "data",
+        "edit"
+    ],
+    "unevaluatedProperties": false,
+    "properties": {
+        "data": {
+            "$ref": "data.schema.json"
+        },
+        "display": {
+            "type": "object",
+            "required": [
+                "domain_title",
+                "range_title"
+            ],
+            "properties": {
+                "domain_title": {
+                    "type": "string"
+                },
+                "range_title": {
+                    "type": "string"
+                },
+                "layout": {
+                    "$ref": "display_layout.schema.json"
+                }
+            }
+        },
+        "edit": {
+            "type": "object",
+            "required": [
+                "domain_title",
+                "range_title"
+            ],
+            "properties": {
+                "domain_title": {
+                    "type": "string"
+                },
+                "range_title": {
+                    "type": "string"
+                },
+                "layout": {
+                    "$ref": "edit_layout.schema.json"
+                }
+            }
+        }
+    }
+}
